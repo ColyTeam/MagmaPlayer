@@ -11,9 +11,11 @@ public abstract class AudioTrackEvent {
     @NotNull
     protected AudioTrack audioTrack;
 
-    @Getter
-    @NotNull
-    protected AudioPlayer audioPlayer;
+    public AudioTrackEvent(@NotNull AudioTrack audioTrack) {
+        this.audioTrack = audioTrack;
+    }
 
-
+    public AudioPlayer getAudioPlayer() {
+        return audioTrack.getAudioPlayer();
+    }
 }

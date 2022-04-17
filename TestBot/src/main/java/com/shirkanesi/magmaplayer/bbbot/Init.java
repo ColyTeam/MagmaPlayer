@@ -1,9 +1,13 @@
 package com.shirkanesi.magmaplayer.bbbot;
 
+import com.shirkanesi.magmaplayer.AudioTrackInformation;
+import com.shirkanesi.magmaplayer.YTDLPAudioTrack;
 import com.shirkanesi.magmaplayer.bbbot.discord.DiscordController;
 import com.shirkanesi.magmaplayer.AudioPlayer;
 import com.shirkanesi.magmaplayer.AudioTrack;
-import com.shirkanesi.magmaplayer.YTDLPAudioTrack;
+import com.shirkanesi.magmaplayer.listener.AudioTrackEventListener;
+import com.shirkanesi.magmaplayer.listener.events.AudioTrackEndEvent;
+import com.shirkanesi.magmaplayer.listener.events.AudioTrackStartedEvent;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
@@ -44,6 +48,29 @@ public class Init {
                 audioPlayer.enqueueTrack(ytdlpAudioTrack);
             }
         }
+    }
+
+    private void testJulian(Guild guildById, AudioPlayer audioPlayer) {
+        AudioTrack ytdlpAudioTrack3 = new YTDLPAudioTrack("https://www.youtube.com/watch?v=fP9i4yqvGHY");
+
+        AudioTrackInformation information = ytdlpAudioTrack3.getInformation();
+        System.out.println(information);
+        ytdlpAudioTrack3.getAudioTrackObserver().addEventListener(new AudioTrackEventListener() {
+            @Override
+            public void onAudioTrackStarted(AudioTrackStartedEvent event) {
+                System.out.println("#########################################################\nStarted");
+            }
+
+            @Override
+            public void onAudioTrackEnded(AudioTrackEndEvent event) {
+                AudioTrackEventListener.super.onAudioTrackEnded(event);
+                System.out.println("#########################################################\nEnded");
+            }
+
+        });
+
+        guildById.getAudioManager().setSendingHandler(audioPlayer.createSendHandler());
+        audioPlayer.enqueueTrack(ytdlpAudioTrack3);
     }
 
     static void addShutdownHook() {

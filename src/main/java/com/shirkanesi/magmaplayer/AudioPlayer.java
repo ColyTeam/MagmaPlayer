@@ -109,7 +109,7 @@ public class AudioPlayer implements Pauseable, Closeable {
             this.audioTrack.close();
         }
         if (audioTrack != null) {
-            ((YTDLPAudioTrack) audioTrack).setOnAfterFinish(this::next); // fixme: cast
+//            ((YTDLPAudioTrack_Legacy) audioTrack).setOnAfterFinish(this::next); // fixme: cast
         } else {
             // Handle playback of next track async for faster return to callee
             new Thread(this::next).start();
