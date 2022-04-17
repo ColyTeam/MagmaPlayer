@@ -5,6 +5,7 @@ import com.shirkanesi.magmaplayer.exception.AudioPlayerException;
 import com.shirkanesi.magmaplayer.exception.AudioTrackPullException;
 import com.shirkanesi.magmaplayer.listener.AudioTrackObserver;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackEndEvent;
+import com.shirkanesi.magmaplayer.util.StreamUtil;
 import com.shirkanesi.magmaplayer.ytdlp.model.YTDLPAudioTrackInformation;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,6 +15,7 @@ import org.gagravarr.ogg.OggFile;
 import org.gagravarr.opus.OpusAudioData;
 import org.gagravarr.opus.OpusFile;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -107,7 +109,7 @@ public class YTDLPAudioTrack implements AudioTrack {
 
                 try (FileOutputStream fileOutputStream = new FileOutputStream(tempFile)) {
                     this.fileOutputStream = fileOutputStream;
-                    long dataLength = pullProcess.getInputStream().transferTo(fileOutputStream);
+                    long dataLength = StreamUtil.transferTo(pullProcess.getInputStream(), fileOutputStream);
                     log.info(String.format("Pulled %.2fMiB to %s", dataLength / 1048576.0, tempFile.getName()));
                 }
 
@@ -194,23 +196,24 @@ public class YTDLPAudioTrack implements AudioTrack {
             // This looks like busy-waiting. Well that's right. However, this will wait at most 5 seconds.
             // Only waiting until the first opus-frame is available.
             int failedAttempts = 0;
+            FileInputStream input = new FileInputStream(tempFile);
             while (this.opusFile == null) {
-                FileInputStream input = new FileInputStream(tempFile);
                 try {
                     this.opusFile = new OpusFile(new OggFile(input));
+                    while (this.opusFile.getNextAudioPacket() == null) {
+                        // Fixme: Temporary fix to really make sure enough data is present. This must change!
+                        TimeUnit.MILLISECONDS.sleep(100);
+                    }
                 } catch (IllegalArgumentException e2) {
                     // The OpusFile was not created (likely because there was no full frame present)
                     if (failedAttempts++ > 10) {
+                        input.close();
                         throw new AudioTrackPullException("Could not pull first frame of audio-track in 10 seconds.");
                     }
-                    input.close();
                     TimeUnit.MILLISECONDS.sleep(1000);
                 }
             }
             log.debug("Start of audio-track has been pulled within {} seconds", failedAttempts);
-
-            // Fixme: Temporary fix to really make sure enough data is present. This must change!
-            TimeUnit.MILLISECONDS.sleep(1000);
 
             this.ready = true;
             this.finished = false;
