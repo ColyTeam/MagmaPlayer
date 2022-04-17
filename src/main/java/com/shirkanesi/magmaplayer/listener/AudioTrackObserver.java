@@ -2,6 +2,7 @@ package com.shirkanesi.magmaplayer.listener;
 
 import com.shirkanesi.magmaplayer.AudioTrack;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackEndEvent;
+import com.shirkanesi.magmaplayer.listener.events.AudioTrackJumpEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackPauseEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackSkippedEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackStartedEvent;
@@ -37,6 +38,11 @@ public class AudioTrackObserver {
     public void triggerAudioTrackPaused() {
         AudioTrackPauseEvent event = new AudioTrackPauseEvent(audioTrack);
         this.listeners.forEach(listener -> listener.onAudioTrackPaused(event));
+    }
+
+    public void triggerAudioTrackJump(long from, long to) {
+        AudioTrackJumpEvent event = new AudioTrackJumpEvent(audioTrack, from, to);
+        this.listeners.forEach(listener -> listener.onAudioTrackJump(event));
     }
 
     public void addEventListener(AudioTrackEventListener listener) {

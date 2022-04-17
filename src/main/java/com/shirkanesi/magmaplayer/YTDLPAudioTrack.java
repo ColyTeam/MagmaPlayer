@@ -4,7 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shirkanesi.magmaplayer.exception.AudioPlayerException;
 import com.shirkanesi.magmaplayer.exception.AudioTrackPullException;
 import com.shirkanesi.magmaplayer.listener.AudioTrackObserver;
+import com.shirkanesi.magmaplayer.listener.FiresEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackEndEvent;
+import com.shirkanesi.magmaplayer.listener.events.AudioTrackJumpEvent;
+import com.shirkanesi.magmaplayer.listener.events.AudioTrackStartedEvent;
 import com.shirkanesi.magmaplayer.ytdlp.model.YTDLPAudioTrackInformation;
 import lombok.Getter;
 import lombok.Setter;
@@ -171,12 +174,15 @@ public class YTDLPAudioTrack implements AudioTrack {
     }
 
     @Override
+    @FiresEvent(value = AudioTrackJumpEvent.class, onEveryPass = true)
     public synchronized void jumpTo(int seconds) {
         try {
-            if ((long) seconds * SAMPLE_RATE < this.nextAudioPacket.getGranulePosition()) {
+            long currentPosition = this.nextAudioPacket.getGranulePosition();
+            if ((long) seconds * SAMPLE_RATE < currentPosition) {
                 this.restart();
             }
             this.opusFile.skipToGranule((long) seconds * SAMPLE_RATE);
+            this.audioTrackObserver.triggerAudioTrackJump(currentPosition / SAMPLE_RATE, this.nextAudioPacket.getGranulePosition() / SAMPLE_RATE);
         } catch (IOException e) {
             throw new AudioPlayerException(e);
         }
@@ -184,6 +190,7 @@ public class YTDLPAudioTrack implements AudioTrack {
 
     @Override
     @SneakyThrows
+    @FiresEvent(AudioTrackStartedEvent.class)
     public void restart() {
         try {
             this.ready = false;
