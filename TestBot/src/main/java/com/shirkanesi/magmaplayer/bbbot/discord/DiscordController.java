@@ -2,13 +2,12 @@ package com.shirkanesi.magmaplayer.bbbot.discord;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
 import javax.security.auth.login.LoginException;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 public class DiscordController {
 
@@ -23,10 +22,7 @@ public class DiscordController {
      */
     public DiscordController() throws LoginException {
         instance = this;
-        Collection<GatewayIntent> gatewayIntents = Arrays.asList(GatewayIntent.GUILD_VOICE_STATES,
-                GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.DIRECT_MESSAGES,
-                GatewayIntent.GUILD_PRESENCES
-        );
+        Collection<GatewayIntent> gatewayIntents = List.of(GatewayIntent.GUILD_VOICE_STATES);
 
         jda = JDABuilder.createDefault(System.getenv("BOT_TOKEN"), gatewayIntents)
                 .disableCache(CacheFlag.EMOTE, CacheFlag.ACTIVITY, CacheFlag.CLIENT_STATUS)
