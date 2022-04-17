@@ -56,6 +56,7 @@ public class AudioPlayer implements Pauseable, Closeable {
 
     public synchronized void enqueueTrack(AudioTrack audioTrack) {
         this.trackQueue.add(audioTrack);
+        log.debug("test");
         if (this.audioTrack == null) {
             this.next();
         }
@@ -98,7 +99,11 @@ public class AudioPlayer implements Pauseable, Closeable {
                     // AudioTrackSkippedEvent
                 }
             }
-            this.setTrack(this.trackQueue.take());
+            if (this.trackQueue.size() > 0) {
+                this.setTrack(this.trackQueue.take());
+            } else {
+                // Queue ended
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -111,10 +116,13 @@ public class AudioPlayer implements Pauseable, Closeable {
         if (audioTrack != null) {
             ((YTDLPAudioTrack) audioTrack).setOnAfterFinish(this::next); // fixme: cast
         } else {
+            return;
+            // why should this call next? The queue has ended
             // Handle playback of next track async for faster return to callee
-            new Thread(this::next).start();
+            // new Thread(this::next).start();
         }
         this.audioTrack = audioTrack;
+        this.audioTrack.load();
     }
 
     public AudioSendHandler createSendHandler() {

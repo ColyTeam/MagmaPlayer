@@ -55,10 +55,16 @@ public class YTDLPAudioTrack extends AbstractAudioTrack {
     public YTDLPAudioTrack(String url) {
         this.url = url;
 
+        // Ensure space gets cleaned on program termination.
+        Runtime.getRuntime().addShutdownHook(new Thread(this::close));
+    }
+
+    @Override
+    public void load() {
         new Thread(() -> {
             try {
                 final String streamUrl = this.findStreamUrl(this.url);
-                log.info("Stream-URL: {}", streamUrl);
+                log.debug("Stream-URL: {}", streamUrl);
 
                 tempFile = File.createTempFile("audio-buffer", ".opus");
                 tempFile.deleteOnExit();
@@ -69,9 +75,6 @@ public class YTDLPAudioTrack extends AbstractAudioTrack {
                 //TODO
             }
         }).start();
-
-        // Ensure space gets cleaned on program termination.
-        Runtime.getRuntime().addShutdownHook(new Thread(this::close));
     }
 
     /**
@@ -105,7 +108,7 @@ public class YTDLPAudioTrack extends AbstractAudioTrack {
                     this.fileOutputStream = fileOutputStream;
                     this.readySemaphore.release();
                     long dataLength = pullProcess.getInputStream().transferTo(fileOutputStream);
-                    log.info(String.format("Pulled %.2fMiB to %s", dataLength / 1048576.0, tempFile.getName()));
+                    log.debug(String.format("Pulled %.2fMiB to %s", dataLength / 1048576.0, tempFile.getName()));
                 }
 
                 // Await termination of the pulling process. Required to actually kill the pull-process iff necessary.
