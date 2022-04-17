@@ -39,15 +39,16 @@ public class Init {
         assert guildById != null;
         guildById.getAudioManager().openAudioConnection(guildById.getVoiceChannelById(System.getenv("TEST_CHANNEL")));
 
-        try (AudioPlayer audioPlayer = new AudioPlayer()) {
-            guildById.getAudioManager().setSendingHandler(audioPlayer.createSendHandler());
+        AudioPlayer audioPlayer = new AudioPlayer();
+        Runtime.getRuntime().addShutdownHook(new Thread(audioPlayer::close));
+        guildById.getAudioManager().setSendingHandler(audioPlayer.createSendHandler());
 
-            String[] tracks = System.getenv("TEST_TRACKS").split(";");
-            for (String track : tracks) {
-                AudioTrack ytdlpAudioTrack = new YTDLPAudioTrack(track);
-                audioPlayer.enqueueTrack(ytdlpAudioTrack);
-            }
+        String[] tracks = System.getenv("TEST_TRACKS").split(";");
+        for (String track : tracks) {
+            AudioTrack ytdlpAudioTrack = new YTDLPAudioTrack(track);
+            audioPlayer.enqueueTrack(ytdlpAudioTrack);
         }
+
     }
 
     private void testJulian(Guild guildById, AudioPlayer audioPlayer) {

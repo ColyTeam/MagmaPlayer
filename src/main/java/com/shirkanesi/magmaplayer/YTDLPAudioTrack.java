@@ -200,14 +200,17 @@ public class YTDLPAudioTrack implements AudioTrack {
                     this.opusFile = new OpusFile(new OggFile(input));
                 } catch (IllegalArgumentException e2) {
                     // The OpusFile was not created (likely because there was no full frame present)
-                    if (failedAttempts++ > 5) {
-                        throw new AudioTrackPullException("Could not pull first frame of audio-track in 5 seconds.");
+                    if (failedAttempts++ > 10) {
+                        throw new AudioTrackPullException("Could not pull first frame of audio-track in 10 seconds.");
                     }
                     input.close();
                     TimeUnit.MILLISECONDS.sleep(1000);
                 }
             }
-            log.debug("Audio-track has been pulled within {} seconds", failedAttempts);
+            log.debug("Start of audio-track has been pulled within {} seconds", failedAttempts);
+
+            // Fixme: Temporary fix to really make sure enough data is present. This must change!
+            TimeUnit.MILLISECONDS.sleep(1000);
 
             this.ready = true;
             this.finished = false;
@@ -225,6 +228,7 @@ public class YTDLPAudioTrack implements AudioTrack {
 
     @Override
     public void close() {
+
         try {
             if (pullThread != null) {
                 this.pullThread.interrupt();
