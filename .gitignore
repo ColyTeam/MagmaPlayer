@@ -1,4 +1,7 @@
 run/
+
+TestBot/src/main/java/com/shirkanesi/magmaplayer/bbbot/testmethods
+
 # Created by https://www.toptal.com/developers/gitignore/api/intellij+all,maven
 # Edit at https://www.toptal.com/developers/gitignore?templates=intellij+all,maven
 
