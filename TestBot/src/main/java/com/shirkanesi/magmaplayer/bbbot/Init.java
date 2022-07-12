@@ -11,6 +11,11 @@ import com.shirkanesi.magmaplayer.listener.events.AudioTrackStartedEvent;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
+import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
+
+import java.lang.reflect.Method;
+import java.util.Set;
 
 @Slf4j
 public class Init {
@@ -43,10 +48,16 @@ public class Init {
         Runtime.getRuntime().addShutdownHook(new Thread(audioPlayer::close));
         guildById.getAudioManager().setSendingHandler(audioPlayer.createSendHandler());
 
-        String[] tracks = System.getenv("TEST_TRACKS").split(";");
-        for (String track : tracks) {
-            AudioTrack ytdlpAudioTrack = new YTDLPAudioTrack(track);
-            audioPlayer.enqueueTrack(ytdlpAudioTrack);
+
+
+        Set<Class<? extends TestingClass>> testClasses = new Reflections("com.shirkanesi.magmaplayer.bbbot.testmethods", new SubTypesScanner(false)).getSubTypesOf(TestingClass.class);
+
+        Method executeMethod = TestingClass.class.getDeclaredMethod("execute", AudioPlayer.class);
+
+        for (Class<? extends TestingClass> testClass : testClasses) {
+            if (!testClass.isAnnotationPresent(Disabled.class)) {
+                executeMethod.invoke(testClass.getDeclaredConstructor().newInstance(), audioPlayer);
+            }
         }
 
     }
