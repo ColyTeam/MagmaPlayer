@@ -250,9 +250,9 @@ public class YTDLPAudioTrack implements AudioTrack {
 
     @SneakyThrows // FIXME
     public AudioTrackInformation getInformation() {
-        if (trackInformation != null) {
+        if (this.trackInformation != null) {
             // we did already load the information before
-            return trackInformation;
+            return this.trackInformation;
         }
 
         final String findInformation = String.format(FIND_INFORMATION_COMMAND, this.url);
@@ -270,7 +270,7 @@ public class YTDLPAudioTrack implements AudioTrack {
             json = bufferedReader.readLine();
         }
 
-        trackInformation = new ObjectMapper().readValue(json, YTDLPAudioTrackInformation.class);
-        return trackInformation;
+        this.trackInformation = new ObjectMapper().readValue(json, YTDLPAudioTrackInformation.class);
+        return this.trackInformation;
     }
 }

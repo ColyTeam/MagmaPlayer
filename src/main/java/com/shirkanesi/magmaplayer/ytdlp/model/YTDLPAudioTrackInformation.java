@@ -14,6 +14,10 @@ public class YTDLPAudioTrackInformation extends AudioTrackInformation {
     private String title;
 
     @Getter
+    @JsonProperty("thumbnail")
+    private String thumbnail;
+
+    @Getter
     @JsonProperty("description")
     private String description;
 
@@ -24,5 +28,9 @@ public class YTDLPAudioTrackInformation extends AudioTrackInformation {
     @Getter
     @JsonProperty("webpage_url")
     private String link;
+
+    @Getter
+    @JsonProperty("duration")
+    private int duration;
 
 }
