@@ -3,9 +3,13 @@ package com.shirkanesi.magmaplayer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shirkanesi.magmaplayer.exception.AudioPlayerException;
 import com.shirkanesi.magmaplayer.exception.AudioTrackPullException;
+import com.shirkanesi.magmaplayer.listener.FiresEvent;
+import com.shirkanesi.magmaplayer.listener.events.AudioTrackJumpEvent;
+import com.shirkanesi.magmaplayer.listener.events.AudioTrackStartedEvent;
 import lombok.Setter;
 import com.shirkanesi.magmaplayer.ytdlp.model.YTDLPAudioTrackInformation;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.gagravarr.ogg.OggFile;
 import org.gagravarr.opus.OpusAudioData;
@@ -60,6 +64,7 @@ public class YTDLPAudioTrack extends AbstractAudioTrack {
         this.url = url;
     }
 
+    @FiresEvent(value = AudioTrackStartedEvent.class, onEveryPass = true)
     @Override
     public void load() {
         new Thread(() -> {
@@ -172,18 +177,23 @@ public class YTDLPAudioTrack extends AbstractAudioTrack {
     }
 
     @Override
+    @FiresEvent(value = AudioTrackJumpEvent.class, onEveryPass = true)
     public synchronized void jumpTo(int seconds) throws AudioPlayerException {
         try {
-            if ((long) seconds * SAMPLE_RATE < this.nextAudioPacket.getGranulePosition()) {
+            long currentPosition = this.nextAudioPacket.getGranulePosition();
+            if ((long) seconds * SAMPLE_RATE < currentPosition) {
                 this.restart();
             }
             this.opusFile.skipToGranule((long) seconds * SAMPLE_RATE);
+            getAudioTrackObserver().triggerAudioTrackJump(currentPosition / SAMPLE_RATE, this.nextAudioPacket.getGranulePosition() / SAMPLE_RATE);
         } catch (IOException e) {
             throw new AudioPlayerException("Could not jump to time", e);
         }
     }
 
     @Override
+    @SneakyThrows
+    @FiresEvent(AudioTrackStartedEvent.class)
     public void restart() throws AudioPlayerException {
         try {
             this.ready = false;
@@ -244,10 +254,6 @@ public class YTDLPAudioTrack extends AbstractAudioTrack {
         }
     }
 
-    public AudioTrackObserver getAudioTrackObserver() {
-        return audioTrackObserver;
-    }
-  
     public AudioTrackInformation getInformation() throws AudioPlayerException {
         if (trackInformation != null) {
             // we did already load the information before
@@ -269,7 +275,7 @@ public class YTDLPAudioTrack extends AbstractAudioTrack {
                 // yt-dlp will not put any line-breaks into the response ==> one line is enough
                 json = bufferedReader.readLine();
             }
-          
+
             trackInformation = new ObjectMapper().readValue(json, YTDLPAudioTrackInformation.class);
             return trackInformation;
         } catch (IOException e) {

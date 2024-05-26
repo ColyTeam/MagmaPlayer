@@ -1,11 +1,16 @@
 package com.shirkanesi.magmaplayer.listener.events;
 
-import com.shirkanesi.magmaplayer.AudioPlayer;
 import com.shirkanesi.magmaplayer.AudioTrack;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+@Getter
 public class AudioTrackPauseEvent extends AudioTrackEvent {
-    public AudioTrackPauseEvent(@NotNull AudioTrack audioTrack) {
+
+    private final boolean paused;
+
+    public AudioTrackPauseEvent(@NotNull AudioTrack audioTrack, boolean paused) {
         super(audioTrack);
+        this.paused = paused;
     }
 }

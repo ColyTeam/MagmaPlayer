@@ -2,7 +2,10 @@ package com.shirkanesi.magmaplayer;
 
 import com.shirkanesi.magmaplayer.discord.MagmaPlayerSendHandler;
 import com.shirkanesi.magmaplayer.listener.AudioTrackEventListener;
+import com.shirkanesi.magmaplayer.listener.FiresEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackEndEvent;
+import com.shirkanesi.magmaplayer.listener.events.AudioTrackPauseEvent;
+import com.shirkanesi.magmaplayer.listener.events.AudioTrackSkippedEvent;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
@@ -42,13 +45,22 @@ public class AudioPlayer implements Pauseable, Closeable, AudioTrackEventListene
     }
 
     @Override
+    @FiresEvent(value = AudioTrackPauseEvent.class, onEveryPass = false)
     public void pause() {
-        this.paused = true;
+        pauseImpl(true);
     }
 
     @Override
+    @FiresEvent(value = AudioTrackPauseEvent.class, onEveryPass = false)
     public void resume() {
-        this.paused = false;
+        pauseImpl(false);
+    }
+
+    private void pauseImpl(boolean state) {
+        this.paused = state;
+        if (this.audioTrack != null) {
+            this.audioTrack.getAudioTrackObserver().triggerAudioTrackPaused(state);
+        }
     }
 
     @Override
@@ -89,13 +101,12 @@ public class AudioPlayer implements Pauseable, Closeable, AudioTrackEventListene
         }
     }
 
+    @FiresEvent(value = AudioTrackSkippedEvent.class, onEveryPass = false)
     public void next() {
         try {
             if (this.audioTrack != null) {
-                if (this.audioTrack.isFinished()) {
-                    // AudioTrackEndEvent
-                } else {
-                    // AudioTrackSkippedEvent
+                if (!this.audioTrack.isFinished()) {
+                    this.audioTrack.getAudioTrackObserver().triggerAudioTrackSkipped();
                 }
             }
             if (!this.trackQueue.isEmpty()) {
