@@ -2,6 +2,7 @@ package com.shirkanesi.magmaplayer;
 
 import com.shirkanesi.magmaplayer.exception.AudioPlayerException;
 import com.shirkanesi.magmaplayer.exception.AudioTrackPullException;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.gagravarr.ogg.OggFile;
@@ -14,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PushbackInputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +30,8 @@ public class YTDLPAudioTrack extends AbstractAudioTrack {
     private static final String FIND_STREAM_COMMAND = "yt-dlp -g -f bestaudio -S \"+size,+br,+res,+fps\" \"%s\"";
     private static final String FALLBACK_FIND_STREAM_COMMAND = "yt-dlp -g -S \"+size,+br,+res,+fps\" \"%s\"";
     private static final String PULL_STREAM_COMMAND = "ffmpeg -loglevel quiet -hide_banner -i \"%s\" -y -vbr 0 -ab 128k -ar 48k -f opus -";
+    private static final int WAIT_IN_SECONDS = 10;
+    private static final int MIN_AVAILABLE_BYTES = 512;
 
     /**
      * The video's URL
@@ -43,6 +47,12 @@ public class YTDLPAudioTrack extends AbstractAudioTrack {
 
     private Thread pullThread;
 
+    /**
+     * -- SETTER --
+     *  Sets a callback-function called, when the track is finished (or skipped)
+     *
+     */
+    @Setter
     private Runnable onAfterFinish;
 
     private File tempFile;
@@ -77,14 +87,6 @@ public class YTDLPAudioTrack extends AbstractAudioTrack {
         }).start();
     }
 
-    /**
-     * Sets a callback-function called, when the track is finished (or skipped)
-     * @param onAfterFinish the callback to be called
-     */
-    public void setOnAfterFinish(Runnable onAfterFinish) {
-        this.onAfterFinish = onAfterFinish;
-    }
-
     private void startStreamingFrom(File tempFile) {
         new Thread(() -> {
             try {
@@ -107,6 +109,12 @@ public class YTDLPAudioTrack extends AbstractAudioTrack {
                 try (FileOutputStream fileOutputStream = new FileOutputStream(tempFile)) {
                     this.fileOutputStream = fileOutputStream;
                     this.readySemaphore.release();
+
+                    while (pullProcess.getInputStream().available() < MIN_AVAILABLE_BYTES) {
+                        // Yes, this is busy waiting. The author does not know a better solution.
+                        Thread.sleep(100);
+                    }
+
                     long dataLength = pullProcess.getInputStream().transferTo(fileOutputStream);
                     log.debug(String.format("Pulled %.2fMiB to %s", dataLength / 1048576.0, tempFile.getName()));
                 }
@@ -192,7 +200,7 @@ public class YTDLPAudioTrack extends AbstractAudioTrack {
             }
             this.readySemaphore.acquire();
 
-            // This looks like busy-waiting. Well that's right. However, this will wait at most 5 seconds.
+            // This looks like busy-waiting. Well that's right. However, this will wait at most seconds.
             // Only waiting until the first opus-frame is available.
             int failedAttempts = 0;
             while (this.opusFile == null) {
@@ -200,14 +208,15 @@ public class YTDLPAudioTrack extends AbstractAudioTrack {
                 try {
                     this.opusFile = new OpusFile(new OggFile(input));
                 } catch (IllegalArgumentException e2) {
-                    if (failedAttempts++ > 5) {
-                        throw new AudioTrackPullException("Could not pull first frame of audio-track in 5 seconds.");
+                    if (failedAttempts++ > WAIT_IN_SECONDS) {
+                        throw new AudioTrackPullException(
+                                "Could not pull first frame of audio-track in " + WAIT_IN_SECONDS + " seconds.");
                     }
                     input.close();
                     TimeUnit.SECONDS.sleep(1);
                 }
             }
-            log.debug("Audio-track has been pulled within {} seconds", failedAttempts);
+            log.debug("Audio-track has been pulled within {} attempts", failedAttempts + 1);
 
             this.ready = true;
             this.finished = false;
@@ -234,6 +243,9 @@ public class YTDLPAudioTrack extends AbstractAudioTrack {
             }
             if (this.fileOutputStream != null) {
                 this.fileOutputStream.close();
+            }
+            if (this.tempFile != null) {
+                this.tempFile.delete();
             }
         } catch (IOException e) {
             throw new AudioPlayerException(e);
