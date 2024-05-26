@@ -1,7 +1,11 @@
 package com.shirkanesi.magmaplayer.bbbot.discord;
 
+import com.shirkanesi.magmaplayer.AudioPlayer;
+import lombok.Getter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.managers.AudioManager;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
@@ -11,8 +15,7 @@ import java.util.List;
 
 public class DiscordController {
 
-    private static DiscordController instance;
-
+    @Getter
     private final JDA jda;
 
     /**
@@ -21,7 +24,6 @@ public class DiscordController {
      * @throws LoginException when the provided token is invalid
      */
     public DiscordController() throws LoginException {
-        instance = this;
         Collection<GatewayIntent> gatewayIntents = List.of(GatewayIntent.GUILD_VOICE_STATES);
 
         jda = JDABuilder.createDefault(System.getenv("BOT_TOKEN"), gatewayIntents)
@@ -29,13 +31,11 @@ public class DiscordController {
                 .build();
     }
 
-    /**
-     * Get the Main JDA instance for executing future tasks
-     *
-     * @return the JDA instance from the BOT
-     */
-    public static JDA getJDA() {
-        return instance.jda;
+    public static AudioPlayer getNewAudioPlayer(AudioManager audioManager) {
+        AudioPlayer audioPlayer = new AudioPlayer();
+        Runtime.getRuntime().addShutdownHook(new Thread(audioPlayer::close));
+        audioManager.setSendingHandler(audioPlayer.createSendHandler());
+        return audioPlayer;
     }
 
 }

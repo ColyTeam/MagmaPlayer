@@ -9,6 +9,8 @@ import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 
 import java.io.Closeable;
 import java.nio.ByteBuffer;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -129,6 +131,10 @@ public class AudioPlayer implements Pauseable, Closeable, AudioTrackEventListene
 
     public AudioTrack getCurrentAudioTrack() {
         return this.audioTrack;
+    }
+
+    public List<AudioTrack> getTrackQueue() {
+        return new LinkedList<>(this.trackQueue);
     }
 
     @Override
