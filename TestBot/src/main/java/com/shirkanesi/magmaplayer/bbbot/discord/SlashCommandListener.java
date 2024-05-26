@@ -50,6 +50,11 @@ public class SlashCommandListener extends ListenerAdapter {
                 EmbedBuilder embedBuilder = new EmbedBuilder();
                 AudioTrack currentTrack = audioPlayer.getCurrentAudioTrack();
 
+                if (currentTrack == null) {
+                    event.reply("No track currently playing").setEphemeral(true).queue();
+                    return;
+                }
+
                 AudioTrackInformation information = currentTrack.getInformation();
 
                 embedBuilder.addField("Title", information.getTitle(), false);
