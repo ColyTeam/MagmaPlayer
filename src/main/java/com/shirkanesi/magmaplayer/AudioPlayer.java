@@ -1,6 +1,8 @@
 package com.shirkanesi.magmaplayer;
 
 import com.shirkanesi.magmaplayer.discord.MagmaPlayerSendHandler;
+import com.shirkanesi.magmaplayer.listener.AudioTrackEventListener;
+import com.shirkanesi.magmaplayer.listener.events.AudioTrackEndEvent;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
@@ -11,17 +13,15 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 @Slf4j
-public class AudioPlayer implements Pauseable, Closeable {
+public class AudioPlayer implements Pauseable, Closeable, AudioTrackEventListener {
 
     private AudioTrack audioTrack;
 
     private final BlockingQueue<AudioTrack> trackQueue = new LinkedBlockingQueue<>();
 
-    private Runnable onAfterFinish;
-
     private boolean paused = false;
 
-    AudioSendHandler sendHandler;
+    private AudioSendHandler sendHandler;
 
     public AudioPlayer() {
         this((AudioTrack) null);
@@ -33,10 +33,10 @@ public class AudioPlayer implements Pauseable, Closeable {
     }
 
     public AudioPlayer(AudioTrack audioTrack) {
-//        this.audioTrack = audioTrack;
         this.setTrack(audioTrack);
 
         Runtime.getRuntime().addShutdownHook(new Thread(this::close));
+
     }
 
     @Override
@@ -57,13 +57,10 @@ public class AudioPlayer implements Pauseable, Closeable {
     public synchronized void enqueueTrack(AudioTrack audioTrack) {
         this.trackQueue.add(audioTrack);
         log.debug("Enqueue track {}", audioTrack);
+        audioTrack.getAudioTrackObserver().addEventListener(this);
         if (this.audioTrack == null) {
             this.next();
         }
-    }
-
-    public void setOnAfterFinish(Runnable onAfterFinish) {
-        this.onAfterFinish = onAfterFinish;
     }
 
     public boolean isFinished() {
@@ -99,7 +96,7 @@ public class AudioPlayer implements Pauseable, Closeable {
                     // AudioTrackSkippedEvent
                 }
             }
-            if (this.trackQueue.size() > 0) {
+            if (!this.trackQueue.isEmpty()) {
                 this.setTrack(this.trackQueue.take());
             } else {
                 // Queue ended
@@ -113,13 +110,11 @@ public class AudioPlayer implements Pauseable, Closeable {
         if (this.audioTrack != null) {
             this.audioTrack.close();
         }
-        if (audioTrack != null) {
-            ((YTDLPAudioTrack) audioTrack).setOnAfterFinish(this::next); // fixme: cast
-        } else {
+        if (audioTrack == null) {
             return;
             // why should this call next? The queue has ended
             // Handle playback of next track async for faster return to callee
-            // new Thread(this::next).start();
+            //new Thread(this::next).start();
         }
         this.audioTrack = audioTrack;
         this.audioTrack.load();
@@ -134,5 +129,10 @@ public class AudioPlayer implements Pauseable, Closeable {
 
     public AudioTrack getCurrentAudioTrack() {
         return this.audioTrack;
+    }
+
+    @Override
+    public void onAudioTrackEnded(AudioTrackEndEvent event) {
+        next();
     }
 }

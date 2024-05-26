@@ -4,10 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shirkanesi.magmaplayer.exception.AudioPlayerException;
 import com.shirkanesi.magmaplayer.exception.AudioTrackPullException;
 import lombok.Setter;
-import com.shirkanesi.magmaplayer.listener.AudioTrackObserver;
 import com.shirkanesi.magmaplayer.ytdlp.model.YTDLPAudioTrackInformation;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.gagravarr.ogg.OggFile;
@@ -20,12 +18,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PushbackInputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class YTDLPAudioTrack implements AudioTrack {
+public class YTDLPAudioTrack extends AbstractAudioTrack {
 
     // Note: yt-dlp -j <URL> will give information about the video (e.g. duration...)
 
@@ -35,10 +32,8 @@ public class YTDLPAudioTrack implements AudioTrack {
     private static final String FALLBACK_FIND_STREAM_COMMAND = "yt-dlp -g -S \"+size,+br,+res,+fps\" \"%s\"";
     private static final String FIND_INFORMATION_COMMAND = "yt-dlp -J \"%s\"";
     private static final String PULL_STREAM_COMMAND = "ffmpeg -loglevel quiet -hide_banner -i \"%s\" -y -vbr 0 -ab 128k -ar 48k -f opus -";
-    private static final int WAIT_IN_SECONDS = 10;
+    private static final int MAX_ATTEMPTS = 10;
     private static final int MIN_AVAILABLE_BYTES = 512;
-
-    private final AudioTrackObserver audioTrackObserver;
 
     @Getter
     @Setter
@@ -65,9 +60,6 @@ public class YTDLPAudioTrack implements AudioTrack {
 
     public YTDLPAudioTrack(String url) {
         this.url = url;
-
-        // Ensure space gets cleaned on program termination.
-        Runtime.getRuntime().addShutdownHook(new Thread(this::close));
     }
 
     @Override
@@ -86,8 +78,6 @@ public class YTDLPAudioTrack implements AudioTrack {
                 //TODO
             }
         }).start();
-
-        this.audioTrackObserver = new AudioTrackObserver(this);
 
         // Ensure space gets cleaned on program termination.
         Runtime.getRuntime().addShutdownHook(new Thread(this::close));
@@ -118,6 +108,7 @@ public class YTDLPAudioTrack implements AudioTrack {
 
                     while (pullProcess.getInputStream().available() < MIN_AVAILABLE_BYTES) {
                         // Yes, this is busy waiting. The author does not know a better solution.
+                        // TODO: find better solution
                         Thread.sleep(100);
                     }
 
@@ -174,7 +165,7 @@ public class YTDLPAudioTrack implements AudioTrack {
             boolean canProvide = nextAudioPacket != null;
             if (!canProvide) {
                 finished = true;
-                this.audioTrackObserver.triggerAudioTrackEnded();
+                getAudioTrackObserver().triggerAudioTrackEnded();
                 this.close();
             }
             return canProvide;
@@ -213,19 +204,19 @@ public class YTDLPAudioTrack implements AudioTrack {
                 try {
                     this.opusFile = new OpusFile(new OggFile(input));
                 } catch (IllegalArgumentException e2) {
-                    if (failedAttempts++ > WAIT_IN_SECONDS) {
+                    if (failedAttempts++ > MAX_ATTEMPTS) {
                         throw new AudioTrackPullException(
-                                "Could not pull first frame of audio-track in " + WAIT_IN_SECONDS + " seconds.");
+                                "Could not pull first frame of audio-track in " + MAX_ATTEMPTS + " seconds.");
                     }
                     input.close();
                     TimeUnit.MILLISECONDS.sleep(1000);
                 }
             }
-            log.debug("Audio-track has been pulled within {} attempts", failedAttempts + 1);
+            log.debug("Audio-track has been pulled after {} attempt(s)", failedAttempts + 1);
 
             this.ready = true;
             this.finished = false;
-            this.audioTrackObserver.triggerAudioTrackStarted();
+            getAudioTrackObserver().triggerAudioTrackStarted();
         } catch (IOException e) {
             throw new AudioPlayerException(e);
         }
@@ -255,10 +246,6 @@ public class YTDLPAudioTrack implements AudioTrack {
         } catch (IOException e) {
             throw new AudioPlayerException(e);
         }
-    }
-
-    public AudioTrackObserver getAudioTrackObserver() {
-        return audioTrackObserver;
     }
 
     @SneakyThrows // FIXME
