@@ -3,7 +3,7 @@ package com.shirkanesi.magmaplayer;
 import com.shirkanesi.magmaplayer.discord.MagmaPlayerSendHandler;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
-import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 
 import java.io.Closeable;
 import java.nio.ByteBuffer;
@@ -56,6 +56,7 @@ public class AudioPlayer implements Pauseable, Closeable {
 
     public synchronized void enqueueTrack(AudioTrack audioTrack) {
         this.trackQueue.add(audioTrack);
+        log.debug("Enqueue track {}", audioTrack);
         if (this.audioTrack == null) {
             this.next();
         }

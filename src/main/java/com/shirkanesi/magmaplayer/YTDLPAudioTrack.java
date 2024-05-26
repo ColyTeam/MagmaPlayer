@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shirkanesi.magmaplayer.exception.AudioPlayerException;
 import com.shirkanesi.magmaplayer.exception.AudioTrackPullException;
 import com.shirkanesi.magmaplayer.listener.AudioTrackObserver;
-import com.shirkanesi.magmaplayer.listener.events.AudioTrackEndEvent;
 import com.shirkanesi.magmaplayer.ytdlp.model.YTDLPAudioTrackInformation;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,7 +20,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
