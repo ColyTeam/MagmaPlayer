@@ -102,6 +102,7 @@ public class AudioPlayer implements Pauseable, Closeable, AudioTrackEventListene
                 this.setTrack(this.trackQueue.take());
             } else {
                 // Queue ended
+                this.audioTrack = null;
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
