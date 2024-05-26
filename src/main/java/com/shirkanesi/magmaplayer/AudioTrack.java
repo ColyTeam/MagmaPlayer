@@ -9,6 +9,8 @@ import java.nio.ByteBuffer;
 
 public interface AudioTrack extends Closeable {
 
+    void load();
+
     @FiresEvent(value = AudioTrackJumpEvent.class, onEveryPass = true)
     void jumpTo(int seconds);
 
