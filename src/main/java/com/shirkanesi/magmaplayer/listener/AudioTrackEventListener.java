@@ -7,6 +7,8 @@ import com.shirkanesi.magmaplayer.listener.events.AudioTrackStartedEvent;
 
 public interface AudioTrackEventListener {
 
+    // Restart, jump, ...
+
     default void onAudioTrackStarted(final AudioTrackStartedEvent event) {}
 
     default void onAudioTrackEnded(final AudioTrackEndEvent event) {}

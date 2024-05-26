@@ -25,7 +25,7 @@ public class DiscordController {
         Collection<GatewayIntent> gatewayIntents = List.of(GatewayIntent.GUILD_VOICE_STATES);
 
         jda = JDABuilder.createDefault(System.getenv("BOT_TOKEN"), gatewayIntents)
-                .disableCache(CacheFlag.EMOTE, CacheFlag.ACTIVITY, CacheFlag.CLIENT_STATUS)
+                .disableCache(CacheFlag.EMOJI, CacheFlag.ACTIVITY, CacheFlag.CLIENT_STATUS)
                 .build();
     }
 
