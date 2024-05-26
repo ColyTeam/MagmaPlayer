@@ -3,11 +3,9 @@ package com.shirkanesi.magmaplayer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shirkanesi.magmaplayer.exception.AudioPlayerException;
 import com.shirkanesi.magmaplayer.exception.AudioTrackPullException;
-import com.shirkanesi.magmaplayer.listener.AudioTrackObserver;
+import lombok.Setter;
 import com.shirkanesi.magmaplayer.ytdlp.model.YTDLPAudioTrackInformation;
 import lombok.Getter;
-import lombok.Setter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.gagravarr.ogg.OggFile;
 import org.gagravarr.opus.OpusAudioData;
@@ -23,7 +21,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class YTDLPAudioTrack implements AudioTrack {
+public class YTDLPAudioTrack extends AbstractAudioTrack {
 
     // Note: yt-dlp -j <URL> will give information about the video (e.g. duration...)
 
@@ -33,8 +31,8 @@ public class YTDLPAudioTrack implements AudioTrack {
     private static final String FALLBACK_FIND_STREAM_COMMAND = "yt-dlp -g -S \"+size,+br,+res,+fps\" \"%s\"";
     private static final String FIND_INFORMATION_COMMAND = "yt-dlp -J \"%s\"";
     private static final String PULL_STREAM_COMMAND = "ffmpeg -loglevel quiet -hide_banner -i \"%s\" -y -vbr 0 -ab 128k -ar 48k -f opus -";
-
-    private final AudioTrackObserver audioTrackObserver;
+    private static final int MAX_ATTEMPTS = 10;
+    private static final int MIN_AVAILABLE_BYTES = 512;
 
     @Getter
     @Setter
@@ -52,7 +50,6 @@ public class YTDLPAudioTrack implements AudioTrack {
 
     private boolean finished = false;
     private boolean ready = false;
-    private boolean pullStarted = false;
 
     private Thread pullThread;
     private File tempFile;
@@ -61,33 +58,32 @@ public class YTDLPAudioTrack implements AudioTrack {
 
     public YTDLPAudioTrack(String url) {
         this.url = url;
+    }
 
+    @Override
+    public void load() {
         new Thread(() -> {
             try {
                 final String streamUrl = this.findStreamUrl(this.url);
-                log.info("Stream-URL: {}", streamUrl);
+                log.debug("Stream-URL: {}", streamUrl);
 
                 tempFile = File.createTempFile("audio-buffer", ".opus");
                 tempFile.deleteOnExit();
 
                 this.pullAudioStreamAsync(streamUrl, tempFile);
-                this.startStreamingFrom(tempFile);
+                this.startStreamingFrom();
             } catch (InterruptedException | IOException e) {
-                //TODO
+                throw new AudioTrackPullException(e);
             }
         }).start();
-
-        this.audioTrackObserver = new AudioTrackObserver(this);
 
         // Ensure space gets cleaned on program termination.
         Runtime.getRuntime().addShutdownHook(new Thread(this::close));
     }
 
-    private void startStreamingFrom(File tempFile) {
+    private void startStreamingFrom() {
         new Thread(() -> {
             try {
-                // TODO: fixme
-                TimeUnit.SECONDS.sleep(1);  // necessary because we need to wait for the first frames to arrive.
                 this.restart();
             } catch (Exception exception) {
                 log.warn("Exception while reading from file!", exception);
@@ -105,8 +101,15 @@ public class YTDLPAudioTrack implements AudioTrack {
 
                 try (FileOutputStream fileOutputStream = new FileOutputStream(tempFile)) {
                     this.fileOutputStream = fileOutputStream;
+
+                    while (pullProcess.getInputStream().available() < MIN_AVAILABLE_BYTES) {
+                        // Yes, this is busy waiting. The author does not know a better solution.
+                        // TODO: find better solution
+                        Thread.sleep(100);
+                    }
+
                     long dataLength = pullProcess.getInputStream().transferTo(fileOutputStream);
-                    log.info(String.format("Pulled %.2fMiB to %s", dataLength / 1048576.0, tempFile.getName()));
+                    log.debug(String.format("Pulled %.2fMiB to %s", dataLength / 1048576.0, tempFile.getName()));
                 }
 
                 // Await termination of the pulling process. Required to actually kill the pull-process iff necessary.
@@ -158,7 +161,7 @@ public class YTDLPAudioTrack implements AudioTrack {
             boolean canProvide = nextAudioPacket != null;
             if (!canProvide) {
                 finished = true;
-                this.audioTrackObserver.triggerAudioTrackEnded();
+                getAudioTrackObserver().triggerAudioTrackEnded();
                 this.close();
             }
             return canProvide;
@@ -169,27 +172,26 @@ public class YTDLPAudioTrack implements AudioTrack {
     }
 
     @Override
-    public synchronized void jumpTo(int seconds) {
+    public synchronized void jumpTo(int seconds) throws AudioPlayerException {
         try {
             if ((long) seconds * SAMPLE_RATE < this.nextAudioPacket.getGranulePosition()) {
                 this.restart();
             }
             this.opusFile.skipToGranule((long) seconds * SAMPLE_RATE);
         } catch (IOException e) {
-            throw new AudioPlayerException(e);
+            throw new AudioPlayerException("Could not jump to time", e);
         }
     }
 
     @Override
-    @SneakyThrows
-    public void restart() {
+    public void restart() throws AudioPlayerException {
         try {
             this.ready = false;
             if (this.opusFile != null) {
                 this.opusFile.close();
             }
 
-            // This looks like busy-waiting. Well that's right. However, this will wait at most 5 seconds.
+            // This looks like busy-waiting. Well that's right. However, this will wait at most seconds.
             // Only waiting until the first opus-frame is available.
             int failedAttempts = 0;
             while (this.opusFile == null) {
@@ -197,26 +199,24 @@ public class YTDLPAudioTrack implements AudioTrack {
                 try {
                     this.opusFile = new OpusFile(new OggFile(input));
                 } catch (IllegalArgumentException e2) {
-                    // The OpusFile was not created (likely because there was no full frame present)
-                    if (failedAttempts++ > 10) {
-                        throw new AudioTrackPullException("Could not pull first frame of audio-track in 10 seconds.");
+                    if (failedAttempts++ > MAX_ATTEMPTS) {
+                        throw new AudioTrackPullException(
+                                "Could not pull first frame of audio-track in " + MAX_ATTEMPTS + " seconds.");
                     }
                     input.close();
-                    TimeUnit.MILLISECONDS.sleep(1000);
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(1000);
+                    } catch (InterruptedException ignored) {}
                 }
             }
-            log.debug("Start of audio-track has been pulled within {} seconds", failedAttempts);
-
-            // Fixme: Temporary fix to really make sure enough data is present. This must change!
-            TimeUnit.MILLISECONDS.sleep(1000);
+            log.debug("Audio-track has been pulled after {} attempt(s)", failedAttempts + 1);
 
             this.ready = true;
             this.finished = false;
-            this.audioTrackObserver.triggerAudioTrackStarted();
+            getAudioTrackObserver().triggerAudioTrackStarted();
         } catch (IOException e) {
-            throw new AudioPlayerException(e);
+            throw new AudioPlayerException("Could not load track", e);
         }
-
     }
 
     @Override
@@ -225,8 +225,7 @@ public class YTDLPAudioTrack implements AudioTrack {
     }
 
     @Override
-    public void close() {
-
+    public void close() throws AudioPlayerException {
         try {
             if (pullThread != null) {
                 this.pullThread.interrupt();
@@ -237,38 +236,40 @@ public class YTDLPAudioTrack implements AudioTrack {
             if (this.fileOutputStream != null) {
                 this.fileOutputStream.close();
             }
+            if (this.tempFile != null) {
+                this.tempFile.delete();
+            }
         } catch (IOException e) {
             throw new AudioPlayerException(e);
         }
     }
 
-    public AudioTrackObserver getAudioTrackObserver() {
-        return audioTrackObserver;
-    }
-
-    @SneakyThrows // FIXME
-    public AudioTrackInformation getInformation() {
+    public AudioTrackInformation getInformation() throws AudioPlayerException {
         if (trackInformation != null) {
             // we did already load the information before
             return trackInformation;
         }
 
-        final String findInformation = String.format(FIND_INFORMATION_COMMAND, this.url);
-        Process process = Runtime.getRuntime().exec(findInformation);
         try {
-            // Timeout seems to be necessary for some reason.
-            process.waitFor(1, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            process.destroy();
-        }
+            final String findInformation = String.format(FIND_INFORMATION_COMMAND, this.url);
+            Process process = Runtime.getRuntime().exec(findInformation);
+            try {
+                // Timeout seems to be necessary for some reason.
+                process.waitFor(1, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                process.destroy();
+            }
 
-        String json;
-        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            // yt-dlp will not put any line-breaks into the response ==> one line is enough
-            json = bufferedReader.readLine();
-        }
+            String json;
+            try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                // yt-dlp will not put any line-breaks into the response ==> one line is enough
+                json = bufferedReader.readLine();
+            }
 
-        trackInformation = new ObjectMapper().readValue(json, YTDLPAudioTrackInformation.class);
-        return trackInformation;
+            trackInformation = new ObjectMapper().readValue(json, YTDLPAudioTrackInformation.class);
+            return trackInformation;
+        } catch (IOException e) {
+            throw new AudioPlayerException("Could not load track information", e);
+        }
     }
 }
