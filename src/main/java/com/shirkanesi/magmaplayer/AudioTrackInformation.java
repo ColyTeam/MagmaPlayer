@@ -4,11 +4,15 @@ public abstract class AudioTrackInformation {
 
     public abstract String getTitle();
 
+    public abstract String getThumbnail();
+
     public abstract String getDescription();
 
     public abstract String getCreator();
 
     public abstract String getLink();
+
+    public abstract int getDuration();
 
     @Override
     public String toString() {

@@ -244,10 +244,14 @@ public class YTDLPAudioTrack extends AbstractAudioTrack {
         }
     }
 
+    public AudioTrackObserver getAudioTrackObserver() {
+        return audioTrackObserver;
+    }
+  
     public AudioTrackInformation getInformation() throws AudioPlayerException {
         if (trackInformation != null) {
             // we did already load the information before
-            return trackInformation;
+            return this.trackInformation;
         }
 
         try {
@@ -265,7 +269,7 @@ public class YTDLPAudioTrack extends AbstractAudioTrack {
                 // yt-dlp will not put any line-breaks into the response ==> one line is enough
                 json = bufferedReader.readLine();
             }
-
+          
             trackInformation = new ObjectMapper().readValue(json, YTDLPAudioTrackInformation.class);
             return trackInformation;
         } catch (IOException e) {
