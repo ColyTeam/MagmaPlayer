@@ -1,11 +1,21 @@
 package com.shirkanesi.magmaplayer.bbbot;
 
+import com.shirkanesi.magmaplayer.AudioPlayer;
+import com.shirkanesi.magmaplayer.AudioTrack;
+import com.shirkanesi.magmaplayer.AudioTrackInformation;
+import com.shirkanesi.magmaplayer.YTDLPAudioTrack;
+import com.shirkanesi.magmaplayer.bbbot.discord.DiscordController;
+import com.shirkanesi.magmaplayer.bbbot.discord.SlashCommandListener;
+import com.shirkanesi.magmaplayer.listener.AudioTrackEventListener;
+import com.shirkanesi.magmaplayer.listener.events.AudioTrackEndEvent;
+import com.shirkanesi.magmaplayer.listener.events.AudioTrackStartedEvent;
 import lombok.extern.slf4j.Slf4j;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 
-import static com.shirkanesi.magmaplayer.bbbot.Init.addShutdownHook;
-import static com.shirkanesi.magmaplayer.bbbot.Init.init;
-import static com.shirkanesi.magmaplayer.bbbot.Init.postInit;
-import static com.shirkanesi.magmaplayer.bbbot.Init.startupComplete;
+import static net.dv8tion.jda.api.interactions.commands.OptionType.STRING;
 
 /**
  * Main class from the ButterBrot Bot
@@ -33,11 +43,89 @@ public class MagmaPlayerTestBot {
                 "               |___/                                |___/           ");
         log.info("Starting MagaPlayer-TestBot");
 
-        addShutdownHook();
-        init();
-        postInit();
-        startupComplete();
+        DiscordController discordController = new DiscordController();
 
+
+        discordController.getJda().awaitReady();
+        log.info("Startup complete");
+
+        Guild guildById = discordController.getJda().getGuildById(System.getenv("TEST_GUILD"));
+        assert guildById != null;
+
+        updateSlashCommands(guildById);
+        addShutdownHook(discordController.getJda());
+
+
+        guildById.getAudioManager().openAudioConnection(guildById.getVoiceChannelById(System.getenv("TEST_CHANNEL")));
+
+        AudioPlayer audioPlayer = DiscordController.getNewAudioPlayer(guildById.getAudioManager());
+
+        addTestTrack(audioPlayer);
+
+        discordController.getJda().addEventListener(new SlashCommandListener(audioPlayer));
+    }
+
+    private static void updateSlashCommands(Guild guild) {
+        CommandListUpdateAction commands = guild.updateCommands();
+
+        commands.addCommands(
+                Commands.slash("play", "Play the sound of the url")
+                        .addOption(STRING, "url", "URL of sound", true),
+                Commands.slash("skip", "Skip the current track"),
+                Commands.slash("queue", "Output the current queue"),
+                Commands.slash("track", "Output information about current track")
+        );
+
+        commands.queue();
+        log.info("Updated Slash Commands");
+    }
+
+    private static void addTestTrack(AudioPlayer audioPlayer) {
+        String[] tracks = System.getenv("TEST_TRACKS").split(";");
+        for (String track : tracks) {
+            AudioTrack ytdlpAudioTrack = new YTDLPAudioTrack(track);
+            audioPlayer.enqueueTrack(ytdlpAudioTrack);
+        }
+    }
+
+    static void addShutdownHook(JDA jda) {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> stopBot(false, jda)));
+    }
+
+    static boolean shutdown = false;
+
+    public static void stopBot(boolean systemExit, JDA jda) {
+        if (shutdown)
+            return;
+
+        jda.shutdown();
+        shutdown = true;
+
+        log.info("Good Bye! :c");
+        if (systemExit) System.exit(0);
+    }
+
+    private void testJulian(Guild guildById, AudioPlayer audioPlayer) {
+        AudioTrack ytdlpAudioTrack3 = new YTDLPAudioTrack("https://www.youtube.com/watch?v=fP9i4yqvGHY");
+
+        AudioTrackInformation information = ytdlpAudioTrack3.getInformation();
+        System.out.println(information);
+        ytdlpAudioTrack3.getAudioTrackObserver().addEventListener(new AudioTrackEventListener() {
+            @Override
+            public void onAudioTrackStarted(AudioTrackStartedEvent event) {
+                System.out.println("#########################################################\nStarted");
+            }
+
+            @Override
+            public void onAudioTrackEnded(AudioTrackEndEvent event) {
+                AudioTrackEventListener.super.onAudioTrackEnded(event);
+                System.out.println("#########################################################\nEnded");
+            }
+
+        });
+
+        guildById.getAudioManager().setSendingHandler(audioPlayer.createSendHandler());
+        audioPlayer.enqueueTrack(ytdlpAudioTrack3);
     }
 
 }
