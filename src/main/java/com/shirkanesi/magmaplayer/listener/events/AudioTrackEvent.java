@@ -5,9 +5,9 @@ import com.shirkanesi.magmaplayer.AudioTrack;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+@Getter
 public abstract class AudioTrackEvent {
 
-    @Getter
     @NotNull
     protected AudioTrack audioTrack;
 

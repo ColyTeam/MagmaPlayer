@@ -3,9 +3,7 @@ package com.shirkanesi.magmaplayer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shirkanesi.magmaplayer.exception.AudioPlayerException;
 import com.shirkanesi.magmaplayer.exception.AudioTrackPullException;
-import com.shirkanesi.magmaplayer.listener.AudioTrackObserver;
 import com.shirkanesi.magmaplayer.listener.FiresEvent;
-import com.shirkanesi.magmaplayer.listener.events.AudioTrackEndEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackJumpEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackStartedEvent;
 import lombok.Setter;
@@ -66,6 +64,7 @@ public class YTDLPAudioTrack extends AbstractAudioTrack {
         this.url = url;
     }
 
+    @FiresEvent(value = AudioTrackStartedEvent.class, onEveryPass = true)
     @Override
     public void load() {
         new Thread(() -> {
@@ -253,10 +252,6 @@ public class YTDLPAudioTrack extends AbstractAudioTrack {
         } catch (IOException e) {
             throw new AudioPlayerException(e);
         }
-    }
-
-    public AudioTrackObserver getAudioTrackObserver() {
-        return audioTrackObserver;
     }
 
     public AudioTrackInformation getInformation() throws AudioPlayerException {

@@ -35,8 +35,8 @@ public class AudioTrackObserver {
         this.listeners.forEach(listener -> listener.onAudioTrackSkipped(event));
     }
 
-    public void triggerAudioTrackPaused() {
-        AudioTrackPauseEvent event = new AudioTrackPauseEvent(audioTrack);
+    public void triggerAudioTrackPaused(boolean paused) {
+        AudioTrackPauseEvent event = new AudioTrackPauseEvent(audioTrack, paused);
         this.listeners.forEach(listener -> listener.onAudioTrackPaused(event));
     }
 
