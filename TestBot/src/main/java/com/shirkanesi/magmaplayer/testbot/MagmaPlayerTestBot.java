@@ -33,14 +33,16 @@ public class MagmaPlayerTestBot {
      * @throws Exception when something goes wrong during initialization
      */
     public static void main(String[] args) throws Exception {
-        System.out.println("  __  __                             _____  _                       \n" +
-                " |  \\/  |                           |  __ \\| |                      \n" +
-                " | \\  / | __ _  __ _ _ __ ___   __ _| |__) | | __ _ _   _  ___ _ __ \n" +
-                " | |\\/| |/ _` |/ _` | '_ ` _ \\ / _` |  ___/| |/ _` | | | |/ _ \\ '__|\n" +
-                " | |  | | (_| | (_| | | | | | | (_| | |    | | (_| | |_| |  __/ |   \n" +
-                " |_|  |_|\\__,_|\\__, |_| |_| |_|\\__,_|_|    |_|\\__,_|\\__, |\\___|_|   \n" +
-                "                __/ |                                __/ |          \n" +
-                "               |___/                                |___/           ");
+        System.out.println("""
+                  __  __                             _____  _                      \s
+                 |  \\/  |                           |  __ \\| |                     \s
+                 | \\  / | __ _  __ _ _ __ ___   __ _| |__) | | __ _ _   _  ___ _ __\s
+                 | |\\/| |/ _` |/ _` | '_ ` _ \\ / _` |  ___/| |/ _` | | | |/ _ \\ '__|
+                 | |  | | (_| | (_| | | | | | | (_| | |    | | (_| | |_| |  __/ |  \s
+                 |_|  |_|\\__,_|\\__, |_| |_| |_|\\__,_|_|    |_|\\__,_|\\__, |\\___|_|  \s
+                                __/ |                                __/ |         \s
+                               |___/                                |___/           \
+                """);
         log.info("Starting MagaPlayer-TestBot");
 
         DiscordController discordController = new DiscordController();
@@ -73,7 +75,8 @@ public class MagmaPlayerTestBot {
                         .addOption(STRING, "url", "URL of sound", true),
                 Commands.slash("skip", "Skip the current track"),
                 Commands.slash("queue", "Output the current queue"),
-                Commands.slash("track", "Output information about current track")
+                Commands.slash("track", "Output information about current track"),
+                Commands.slash("pause", "Pause or resume the current track")
         );
 
         commands.queue();

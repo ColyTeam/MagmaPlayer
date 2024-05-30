@@ -62,6 +62,15 @@ public class SlashCommandListener extends ListenerAdapter {
 
                 event.replyEmbeds(embedBuilder.build()).queue();
             }
+            case "pause" -> {
+                if (audioPlayer.isPaused()) {
+                    audioPlayer.resume();
+                    event.reply("Audio player resumed").setEphemeral(true).queue();
+                } else {
+                    audioPlayer.pause();
+                    event.reply("Audio player paused").setEphemeral(true).queue();
+                }
+            }
         }
     }
 }
