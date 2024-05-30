@@ -4,32 +4,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>MagmaPlayer</artifactId>
+    <artifactId>parent</artifactId>
     <groupId>com.shirkanesi.magmaplayer</groupId>
+    <name>MagmaPlayer-parent</name>
     <version>0.0.1</version>
     <packaging>pom</packaging>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>11</source>
-                    <target>11</target>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>1.18.20</version>
-                        </path>
-                    </annotationProcessorPaths>
-                </configuration>
-                <version>3.8.1</version>
-            </plugin>
-        </plugins>
-    </build>
+
     <modules>
         <module>TestBot</module>
+        <module>main</module>
     </modules>
 
 
@@ -39,12 +22,6 @@
             <name>jcenter-bintray</name>
             <url>https://jcenter.bintray.com</url>
         </repository>
-        <!-- New repo for lava-player -->
-        <repository>
-            <id>dv8tion</id>
-            <name>m2-dv8tion</name>
-            <url>https://m2.dv8tion.net/releases</url>
-        </repository>
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
@@ -53,47 +30,19 @@
             <id>central</id>
             <url>https://repo1.maven.org/maven2/</url>
         </repository>
+        <repository>
+            <id>dv8tion</id>
+            <name>m2-dv8tion</name>
+            <url>https://m2.dv8tion.net/releases</url>
+        </repository>
     </repositories>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.gagravarr</groupId>
-            <artifactId>vorbis-java-core</artifactId>
-            <version>0.8</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.11.0</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>net.dv8tion</groupId>
-            <artifactId>JDA</artifactId>
-            <version>5.0.0-beta.24</version>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.22</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.31</version>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.2.13</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.17.0</version>
-        </dependency>
-    </dependencies>
+    <distributionManagement>
+        <repository>
+            <id>coly</id>
+            <name>Coly Maven Repository</name>
+            <url>https://m2.coly.dev/releases</url>
+        </repository>
+    </distributionManagement>
 
 </project>

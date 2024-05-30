@@ -1,11 +1,11 @@
-package com.shirkanesi.magmaplayer.bbbot;
+package com.shirkanesi.magmaplayer.testbot;
 
 import com.shirkanesi.magmaplayer.AudioPlayer;
 import com.shirkanesi.magmaplayer.AudioTrack;
 import com.shirkanesi.magmaplayer.AudioTrackInformation;
 import com.shirkanesi.magmaplayer.YTDLPAudioTrack;
-import com.shirkanesi.magmaplayer.bbbot.discord.DiscordController;
-import com.shirkanesi.magmaplayer.bbbot.discord.SlashCommandListener;
+import com.shirkanesi.magmaplayer.testbot.discord.DiscordController;
+import com.shirkanesi.magmaplayer.testbot.discord.SlashCommandListener;
 import com.shirkanesi.magmaplayer.listener.AudioTrackEventListener;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackEndEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackStartedEvent;

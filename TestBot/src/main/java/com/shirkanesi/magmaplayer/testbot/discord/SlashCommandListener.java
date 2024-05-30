@@ -1,4 +1,4 @@
-package com.shirkanesi.magmaplayer.bbbot.discord;
+package com.shirkanesi.magmaplayer.testbot.discord;
 
 import com.shirkanesi.magmaplayer.AudioPlayer;
 import com.shirkanesi.magmaplayer.AudioTrack;
