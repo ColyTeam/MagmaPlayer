@@ -3,7 +3,7 @@ package com.shirkanesi.magmaplayer.testbot;
 import com.shirkanesi.magmaplayer.AudioPlayer;
 import com.shirkanesi.magmaplayer.AudioTrack;
 import com.shirkanesi.magmaplayer.AudioTrackInformation;
-import com.shirkanesi.magmaplayer.YTDLPAudioTrack;
+import com.shirkanesi.magmaplayer.ytdlp.YTDLPAudioTrack;
 import com.shirkanesi.magmaplayer.testbot.discord.DiscordController;
 import com.shirkanesi.magmaplayer.testbot.discord.SlashCommandListener;
 import com.shirkanesi.magmaplayer.listener.AudioTrackEventListener;
@@ -87,7 +87,7 @@ public class MagmaPlayerTestBot {
         String[] tracks = System.getenv("TEST_TRACKS").split(";");
         for (String track : tracks) {
             AudioTrack ytdlpAudioTrack = new YTDLPAudioTrack(track);
-            audioPlayer.enqueueTrack(ytdlpAudioTrack);
+            audioPlayer.enqueue(ytdlpAudioTrack);
         }
     }
 
@@ -128,7 +128,7 @@ public class MagmaPlayerTestBot {
         });
 
         guildById.getAudioManager().setSendingHandler(audioPlayer.createSendHandler());
-        audioPlayer.enqueueTrack(ytdlpAudioTrack3);
+        audioPlayer.enqueue(ytdlpAudioTrack3);
     }
 
 }

@@ -68,12 +68,26 @@ public class AudioPlayer implements Pauseable, Closeable, AudioTrackEventListene
         return paused || !this.canProvide();
     }
 
-    public synchronized void enqueueTrack(AudioTrack audioTrack) {
+    private synchronized void enqueueTrack(AudioTrack audioTrack) {
         this.trackQueue.add(audioTrack);
         log.debug("Enqueue track {}", audioTrack);
         audioTrack.getAudioTrackObserver().addEventListener(this);
         if (this.audioTrack == null) {
             this.next();
+        }
+    }
+
+    public synchronized void enqueue(AudioTrack audioTrack) {
+        this.enqueueTrack(audioTrack);
+    }
+
+    public synchronized void enqueue(AudioPlaylist audioPlaylist) {
+        if (audioPlaylist.getTracks().isEmpty()) {
+            audioPlaylist.load();
+        }
+
+        for (AudioTrack audioTrack : audioPlaylist.getTracks()) {
+            this.enqueueTrack(audioTrack);
         }
     }
 

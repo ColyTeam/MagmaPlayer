@@ -1,5 +1,8 @@
 package com.shirkanesi.magmaplayer.util;
 
+import com.shirkanesi.magmaplayer.ytdlp.YTDLPAudioItem;
+import com.shirkanesi.magmaplayer.ytdlp.YTDLPAudioPlaylist;
+import com.shirkanesi.magmaplayer.ytdlp.YTDLPAudioTrack;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
@@ -16,14 +19,12 @@ public final class YTDLPManager {
     private static final String YT_DLP_LINUX_DOWNLOAD_URL = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp";
     private static final String YT_DLP_WINDOWS_DOWNLOAD_URL = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe";
 
-    private static final YTDLPManager INSTANCE = new YTDLPManager();
-
     /**
      * Get the version of yt-dlp
      *
      * @return an optional containing the version-string of yt-dlp (or empty iff not found)
      */
-    private synchronized Optional<String> getYTDLPVersion() {
+    public static synchronized Optional<String> getYTDLPVersion() {
         try {
             Process exec = Runtime.getRuntime().exec("yt-dlp --version");
             return Optional.ofNullable(new BufferedReader(new InputStreamReader(exec.getInputStream())).readLine());
@@ -36,7 +37,7 @@ public final class YTDLPManager {
      * Downloads the latest version of yt-dlp into the current working-directory.
      * Note: this will currently only work with windows and linux
      */
-    private synchronized void downloadYTDLP() {
+    public static synchronized void downloadYTDLP() {
         String osName = System.getProperty("os.name").toLowerCase();
 
         String downloadUrl;
@@ -61,11 +62,21 @@ public final class YTDLPManager {
     }
 
     /**
-     * Get the default {@link YTDLPManager}
-     * @return the default {@link YTDLPManager}
+     * Load an url that is compatible with yt-dlp.
+     * This will return a playlist if this is the case.
+     * Otherwise, it will return a track.
+     * @param url url of playlist or track
+     * @return {@link YTDLPAudioPlaylist} if playlist and {@link YTDLPAudioTrack} otherwise
      */
-    public static YTDLPManager getDefault() {
-        return YTDLPManager.INSTANCE;
+    public static YTDLPAudioItem loadUrl(String url) {
+        YTDLPAudioPlaylist playlist = new YTDLPAudioPlaylist(url);
+        playlist.load();
+
+        if (playlist.getTracks().isEmpty()) {
+            return new YTDLPAudioTrack(url);
+        }
+
+        return playlist;
     }
 
 }

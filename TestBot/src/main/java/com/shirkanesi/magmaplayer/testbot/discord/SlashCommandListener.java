@@ -3,7 +3,10 @@ package com.shirkanesi.magmaplayer.testbot.discord;
 import com.shirkanesi.magmaplayer.AudioPlayer;
 import com.shirkanesi.magmaplayer.AudioTrack;
 import com.shirkanesi.magmaplayer.AudioTrackInformation;
-import com.shirkanesi.magmaplayer.YTDLPAudioTrack;
+import com.shirkanesi.magmaplayer.util.YTDLPManager;
+import com.shirkanesi.magmaplayer.ytdlp.YTDLPAudioItem;
+import com.shirkanesi.magmaplayer.ytdlp.YTDLPAudioPlaylist;
+import com.shirkanesi.magmaplayer.ytdlp.YTDLPAudioTrack;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -22,8 +25,14 @@ public class SlashCommandListener extends ListenerAdapter {
         switch (event.getName()) {
             case "play" -> {
                 String url = event.getOption("url", OptionMapping::getAsString);
-                audioPlayer.enqueueTrack(new YTDLPAudioTrack(url));
-                event.reply("Track enqueued").setEphemeral(true).queue();
+                YTDLPAudioItem item = YTDLPManager.loadUrl(url);
+                if (item instanceof YTDLPAudioTrack track) {
+                    audioPlayer.enqueue(track);
+                    event.reply("Track enqueued").setEphemeral(true).queue();
+                } else if (item instanceof YTDLPAudioPlaylist playlist) {
+                    audioPlayer.enqueue(playlist);
+                    event.reply(playlist.getTracks().size() + " tracks enqueued").setEphemeral(true).queue();
+                }
             }
             case "skip" -> {
                 audioPlayer.next();
@@ -31,6 +40,7 @@ public class SlashCommandListener extends ListenerAdapter {
             }
             case "queue" -> {
                 EmbedBuilder embedBuilder = new EmbedBuilder();
+                event.deferReply(true).queue();
 
                 int index = 1;
                 for (AudioTrack audioTrack : audioPlayer.getTrackQueue()) {

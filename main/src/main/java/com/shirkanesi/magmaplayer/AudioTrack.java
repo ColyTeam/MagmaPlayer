@@ -7,9 +7,7 @@ import com.shirkanesi.magmaplayer.listener.events.AudioTrackJumpEvent;
 import java.io.Closeable;
 import java.nio.ByteBuffer;
 
-public interface AudioTrack extends Closeable {
-
-    void load();
+public interface AudioTrack extends Closeable, AudioItem {
 
     @FiresEvent(value = AudioTrackJumpEvent.class, onEveryPass = true)
     void jumpTo(int seconds);

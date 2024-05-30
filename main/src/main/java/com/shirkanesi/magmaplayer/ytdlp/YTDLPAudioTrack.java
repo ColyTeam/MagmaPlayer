@@ -1,6 +1,9 @@
-package com.shirkanesi.magmaplayer;
+package com.shirkanesi.magmaplayer.ytdlp;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shirkanesi.magmaplayer.AbstractAudioTrack;
+import com.shirkanesi.magmaplayer.AudioPlayer;
+import com.shirkanesi.magmaplayer.AudioTrackInformation;
 import com.shirkanesi.magmaplayer.exception.AudioPlayerException;
 import com.shirkanesi.magmaplayer.exception.AudioTrackPullException;
 import com.shirkanesi.magmaplayer.listener.FiresEvent;
@@ -25,7 +28,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class YTDLPAudioTrack extends AbstractAudioTrack {
+public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioItem {
 
     // Note: yt-dlp -j <URL> will give information about the video (e.g. duration...)
 
