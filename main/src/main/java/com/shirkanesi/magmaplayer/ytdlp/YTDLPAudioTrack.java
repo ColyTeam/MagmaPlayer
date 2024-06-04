@@ -268,13 +268,12 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
             final String findInformation = String.format(FIND_INFORMATION_COMMAND, this.url);
             Process process = Runtime.getRuntime().exec(findInformation);
             try {
-                // Timeout seems to be necessary for some reason.
+                // Timeout seems necessary for some reason. The process never terminates. This is cursed.
+                // TODO: find out why
                 process.waitFor(1, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 process.destroy();
             }
-
-            handleErrorInProcess(process);
 
             String json;
             try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
