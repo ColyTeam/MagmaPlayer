@@ -112,7 +112,6 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
 
                     while (pullProcess.getInputStream().available() < MIN_AVAILABLE_BYTES) {
                         // Yes, this is busy waiting. The author does not know a better solution.
-                        // TODO: find better solution
                         Thread.sleep(100);
                     }
 
@@ -149,17 +148,7 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
             process.destroy();
         }
 
-        if (process.exitValue() != 0) {
-            StringBuilder content = new StringBuilder();
-            try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    content.append(line).append("\n");
-                }
-
-            }
-            throw new AudioTrackPullException("Error while reading from source-stream: " + content);
-        }
+        handleErrorInProcess(process);
 
         try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             return bufferedReader.readLine();
@@ -285,6 +274,8 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
                 process.destroy();
             }
 
+            handleErrorInProcess(process);
+
             String json;
             try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 // yt-dlp will not put any line-breaks into the response ==> one line is enough
@@ -297,4 +288,21 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
             throw new AudioPlayerException("Could not load track information", e);
         }
     }
+
+    private void handleErrorInProcess(Process process) {
+        if (process.exitValue() != 0) {
+            StringBuilder content = new StringBuilder();
+            try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    content.append(line).append("\n");
+                }
+
+            } catch (IOException e) {
+                throw new AudioTrackPullException("Error while reading from source-stream", e);
+            }
+            throw new AudioTrackPullException("Error while reading from source-stream: " + content);
+        }
+    }
+
 }
