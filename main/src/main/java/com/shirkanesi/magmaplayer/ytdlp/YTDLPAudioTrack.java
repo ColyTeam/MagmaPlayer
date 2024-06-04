@@ -143,7 +143,7 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
         final String findStreamUrlCommand = String.format(commandTemplate, url);
         Process process = Runtime.getRuntime().exec(findStreamUrlCommand);
         try {
-            process.waitFor();
+            process.waitFor(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             process.destroy();
         }
@@ -290,6 +290,10 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
     }
 
     private void handleErrorInProcess(Process process) {
+        if (process.isAlive()) {
+            throw new AudioPlayerException("Process still running after timeout");
+        }
+
         if (process.exitValue() != 0) {
             StringBuilder content = new StringBuilder();
             try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
