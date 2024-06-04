@@ -149,6 +149,18 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
             process.destroy();
         }
 
+        if (process.exitValue() != 0) {
+            StringBuilder content = new StringBuilder();
+            try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    content.append(line).append("\n");
+                }
+
+            }
+            throw new AudioTrackPullException("Error while reading from source-stream: " + content);
+        }
+
         try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             return bufferedReader.readLine();
         }
