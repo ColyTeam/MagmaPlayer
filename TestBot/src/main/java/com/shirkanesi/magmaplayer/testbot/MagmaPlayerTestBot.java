@@ -15,6 +15,8 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 
+import java.net.MalformedURLException;
+
 import static net.dv8tion.jda.api.interactions.commands.OptionType.STRING;
 
 /**
@@ -86,7 +88,12 @@ public class MagmaPlayerTestBot {
     private static void addTestTrack(AudioPlayer audioPlayer) {
         String[] tracks = System.getenv("TEST_TRACKS").split(";");
         for (String track : tracks) {
-            AudioTrack ytdlpAudioTrack = new YTDLPAudioTrack(track);
+            AudioTrack ytdlpAudioTrack;
+            try {
+                ytdlpAudioTrack = new YTDLPAudioTrack(track);
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
             audioPlayer.enqueue(ytdlpAudioTrack);
         }
     }
@@ -109,7 +116,12 @@ public class MagmaPlayerTestBot {
     }
 
     private void testJulian(Guild guildById, AudioPlayer audioPlayer) {
-        AudioTrack ytdlpAudioTrack3 = new YTDLPAudioTrack("https://www.youtube.com/watch?v=fP9i4yqvGHY");
+        AudioTrack ytdlpAudioTrack3;
+        try {
+            ytdlpAudioTrack3 = new YTDLPAudioTrack("https://www.youtube.com/watch?v=fP9i4yqvGHY");
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
 
         AudioTrackInformation information = ytdlpAudioTrack3.getInformation();
         System.out.println(information);

@@ -10,7 +10,7 @@ import java.util.List;
 
 public class SearchUtil {
 
-    private static final String SEARCH_COMMANDS = "yt-dlp \"%s:%s\" --print-json --flat-playlist --skip-download --no-warnings";
+    private static final String SEARCH_COMMANDS = "yt-dlp %s:%s --print-json --flat-playlist --skip-download --no-warnings";
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 

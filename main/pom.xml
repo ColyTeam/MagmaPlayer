@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.shirkanesi.magmaplayer</groupId>
         <artifactId>parent</artifactId>
-        <version>0.3.0</version>
+        <version>0.3.2</version>
     </parent>
 
     <name>MagmaPlayer</name>

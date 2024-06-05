@@ -12,6 +12,8 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
+import java.net.MalformedURLException;
+
 public class SlashCommandListener extends ListenerAdapter {
 
     private final AudioPlayer audioPlayer;
@@ -25,7 +27,13 @@ public class SlashCommandListener extends ListenerAdapter {
         switch (event.getName()) {
             case "play" -> {
                 String url = event.getOption("url", OptionMapping::getAsString);
-                YTDLPAudioItem item = YTDLPManager.loadUrl(url);
+                YTDLPAudioItem item;
+                try {
+                    item = YTDLPManager.loadUrl(url);
+                } catch (MalformedURLException e) {
+                    event.reply("Could not loud URL").setEphemeral(true).queue();
+                    return;
+                }
                 if (item instanceof YTDLPAudioTrack track) {
                     audioPlayer.enqueue(track);
                     event.reply("Track enqueued").setEphemeral(true).queue();

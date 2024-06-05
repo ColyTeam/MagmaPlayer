@@ -24,6 +24,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
@@ -34,10 +36,10 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
 
     // Constants
     private static final int SAMPLE_RATE = 48000;
-    private static final String FIND_STREAM_COMMAND = "yt-dlp -g -f bestaudio -S \"+size,+br,+res,+fps\" \"%s\"";
-    private static final String FALLBACK_FIND_STREAM_COMMAND = "yt-dlp -g -S \"+size,+br,+res,+fps\" \"%s\"";
-    private static final String FIND_INFORMATION_COMMAND = "yt-dlp -J \"%s\"";
-    private static final String PULL_STREAM_COMMAND = "ffmpeg -loglevel quiet -hide_banner -i \"%s\" -y -vbr 0 -ab 128k -ar 48k -f opus -";
+    private static final String FIND_STREAM_COMMAND = "yt-dlp -g -f bestaudio -S +size,+br,+res,+fps %s";
+    private static final String FALLBACK_FIND_STREAM_COMMAND = "yt-dlp -g -S +size,+br,+res,+fps %s";
+    private static final String FIND_INFORMATION_COMMAND = "yt-dlp -J %s";
+    private static final String PULL_STREAM_COMMAND = "ffmpeg -loglevel quiet -hide_banner -i %s -y -vbr 0 -ab 128k -ar 48k -f opus -";
     private static final int MAX_ATTEMPTS = 10;
     private static final int MIN_AVAILABLE_BYTES = 512;
 
@@ -63,8 +65,9 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
 
     private FileOutputStream fileOutputStream;
 
-    public YTDLPAudioTrack(String url) {
-        this.url = url;
+    public YTDLPAudioTrack(String url) throws MalformedURLException {
+        URL urlObject = new URL(url);
+        this.url = urlObject.toExternalForm();
     }
 
     @FiresEvent(value = AudioTrackStartedEvent.class, onEveryPass = true)

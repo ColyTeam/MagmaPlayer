@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Optional;
 
@@ -68,7 +69,7 @@ public final class YTDLPManager {
      * @param url url of playlist or track
      * @return {@link YTDLPAudioPlaylist} if playlist and {@link YTDLPAudioTrack} otherwise
      */
-    public static YTDLPAudioItem loadUrl(String url) {
+    public static YTDLPAudioItem loadUrl(String url) throws MalformedURLException {
         YTDLPAudioPlaylist playlist = new YTDLPAudioPlaylist(url);
         playlist.load();
 
