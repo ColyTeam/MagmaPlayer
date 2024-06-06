@@ -7,7 +7,7 @@
     <artifactId>parent</artifactId>
     <groupId>com.shirkanesi.magmaplayer</groupId>
     <name>MagmaPlayer-parent</name>
-    <version>0.3.2</version>
+    <version>0.3.3</version>
     <packaging>pom</packaging>
 
     <modules>
