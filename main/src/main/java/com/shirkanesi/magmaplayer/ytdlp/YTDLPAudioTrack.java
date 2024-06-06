@@ -41,7 +41,7 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
             "+size,+br,+res,+fps", "%s"};
     private static final String[] FALLBACK_FIND_STREAM_COMMAND = {"yt-dlp", "-g", "-S", "+size,+br,+res,+fps",
             "%s"};
-    private static final String[] FIND_INFORMATION_COMMAND = {"yt-dlp", "p", "-J", "%s"};
+    private static final String[] FIND_INFORMATION_COMMAND = {"yt-dlp", "-J", "%s"};
     private static final String[] PULL_STREAM_COMMAND = {"ffmpeg", "-loglevel", "quiet", "-hide_banner", "-i", "%s",
             "-y", "-vbr", "0", "-ab", "128k", "-ar", "48k", "-f", "opus", "-"};
     private static final int MAX_ATTEMPTS = 10;
