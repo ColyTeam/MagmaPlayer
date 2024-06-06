@@ -9,6 +9,7 @@ import com.shirkanesi.magmaplayer.exception.AudioTrackPullException;
 import com.shirkanesi.magmaplayer.listener.FiresEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackJumpEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackStartedEvent;
+import com.shirkanesi.magmaplayer.util.FormatUtils;
 import lombok.Setter;
 import com.shirkanesi.magmaplayer.ytdlp.model.YTDLPAudioTrackInformation;
 import lombok.Getter;
@@ -36,10 +37,13 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
 
     // Constants
     private static final int SAMPLE_RATE = 48000;
-    private static final String FIND_STREAM_COMMAND = "yt-dlp -g -f bestaudio -S +size,+br,+res,+fps %s";
-    private static final String FALLBACK_FIND_STREAM_COMMAND = "yt-dlp -g -S +size,+br,+res,+fps %s";
-    private static final String FIND_INFORMATION_COMMAND = "yt-dlp -J %s";
-    private static final String PULL_STREAM_COMMAND = "ffmpeg -loglevel quiet -hide_banner -i %s -y -vbr 0 -ab 128k -ar 48k -f opus -";
+    private static final String[] FIND_STREAM_COMMAND = {"yt-dlp", "-g", "-f", "bestaudio", "-S",
+            "+size,+br,+res,+fps", "%s"};
+    private static final String[] FALLBACK_FIND_STREAM_COMMAND = {"yt-dlp", "-g", "-S", "+size,+br,+res,+fps",
+            "%s"};
+    private static final String[] FIND_INFORMATION_COMMAND = {"yt-dlp", "p", "-J", "%s"};
+    private static final String[] PULL_STREAM_COMMAND = {"ffmpeg", "-loglevel", "quiet", "-hide_banner", "-i", "%s",
+            "-y", "-vbr", "0", "-ab", "128k", "-ar", "48k", "-f", "opus", "-"};
     private static final int MAX_ATTEMPTS = 10;
     private static final int MIN_AVAILABLE_BYTES = 512;
 
@@ -106,7 +110,7 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
         this.pullThread = new Thread(() -> {
             Process pullProcess = null;
             try {
-                String pullCommand = String.format(PULL_STREAM_COMMAND, streamUrl);
+                String[] pullCommand = FormatUtils.format(PULL_STREAM_COMMAND, streamUrl);
 
                 pullProcess = Runtime.getRuntime().exec(pullCommand);
 
@@ -142,8 +146,8 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
         return streamUrl;
     }
 
-    private String findStreamUrl(String commandTemplate, String url) throws IOException {
-        final String findStreamUrlCommand = String.format(commandTemplate, url);
+    private String findStreamUrl(String[] commandTemplate, String url) throws IOException {
+        final String[] findStreamUrlCommand = FormatUtils.format(commandTemplate, url);
         Process process = Runtime.getRuntime().exec(findStreamUrlCommand);
         try {
             process.waitFor(5, TimeUnit.SECONDS);
@@ -268,7 +272,7 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
         }
 
         try {
-            final String findInformation = String.format(FIND_INFORMATION_COMMAND, this.url);
+            final String[] findInformation = FormatUtils.format(FIND_INFORMATION_COMMAND, this.url);
             Process process = Runtime.getRuntime().exec(findInformation);
             try {
                 // Timeout seems necessary for some reason. The process never terminates. This is cursed.

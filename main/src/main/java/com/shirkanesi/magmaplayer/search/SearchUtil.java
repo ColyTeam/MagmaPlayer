@@ -1,6 +1,7 @@
 package com.shirkanesi.magmaplayer.search;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shirkanesi.magmaplayer.util.FormatUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,12 +11,13 @@ import java.util.List;
 
 public class SearchUtil {
 
-    private static final String SEARCH_COMMANDS = "yt-dlp %s:%s --print-json --flat-playlist --skip-download --no-warnings";
+    private static final String[] SEARCH_COMMANDS = {"yt-dlp", "%s:%s", "--print-json", "--flat-playlist",
+            "--skip-download", "--no-warnings"};
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static List<SearchResult> search(String prefix, String query) throws IOException {
-        final String findInformation = String.format(SEARCH_COMMANDS, prefix, query);
+        final String[] findInformation = FormatUtils.format(SEARCH_COMMANDS, prefix, query);
         Process process = Runtime.getRuntime().exec(findInformation);
 
         List<SearchResult> results = new ArrayList<>();

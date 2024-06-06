@@ -42,6 +42,21 @@ class SearchUtilTest {
     }
 
     @Test
+    void testSearchSingleMultipleWords() {
+        try {
+            List<SearchResult> results = SearchUtil.search("ytsearch", "edm music");
+
+            assertEquals(1, results.size());
+
+            assertNotNull(results.get(0));
+            assertNotNull(results.get(0).getTitle());
+            assertNotNull(results.get(0).getUrl());
+        } catch (IOException e) {
+            fail(e);
+        }
+    }
+
+    @Test
     void testSearchInvalid() {
         try {
             List<SearchResult> results = SearchUtil.search("ytsearch10", "hikodfgsoihsdghgoujuoihöfdgs");
