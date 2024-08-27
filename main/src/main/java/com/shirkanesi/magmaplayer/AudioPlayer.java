@@ -163,6 +163,10 @@ public class AudioPlayer implements Pauseable, Closeable, AudioTrackEventListene
         return new LinkedList<>(this.trackQueue);
     }
 
+    public void clearQueue() {
+        this.trackQueue.clear();
+    }
+
     @Override
     public void onAudioTrackEnded(AudioTrackEndEvent event) {
         next();
