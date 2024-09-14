@@ -13,6 +13,9 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
 import java.net.MalformedURLException;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 
 public class SlashCommandListener extends ListenerAdapter {
 
@@ -77,6 +80,14 @@ public class SlashCommandListener extends ListenerAdapter {
 
                 embedBuilder.addField("Title", information.getTitle(), false);
                 embedBuilder.addField("Creator", information.getCreator(), false);
+
+                DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("mm:ss").toFormatter();
+                if (information.getDuration() > 60 * 60) {
+                    formatter = new DateTimeFormatterBuilder().appendPattern("HH:mm:ss").toFormatter();
+                }
+                String currentPosition = formatter.format(LocalTime.ofSecondOfDay(currentTrack.getCurrentPosition()));
+                String duration = formatter.format(LocalTime.ofSecondOfDay(information.getDuration()));
+                embedBuilder.addField("Duration", currentPosition + "/" + duration, false);
 
                 event.replyEmbeds(embedBuilder.build()).queue();
             }

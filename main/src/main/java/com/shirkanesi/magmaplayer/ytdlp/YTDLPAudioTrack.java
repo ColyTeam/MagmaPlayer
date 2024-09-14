@@ -295,6 +295,13 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
         }
     }
 
+    public long getCurrentPosition() {
+        if (nextAudioPacket == null) {
+            return 0;
+        }
+        return this.nextAudioPacket.getGranulePosition() / SAMPLE_RATE;
+    }
+
     private void handleErrorInProcess(Process process) {
         if (process.isAlive()) {
             throw new AudioPlayerException("Process still running after timeout");

@@ -28,4 +28,6 @@ public interface AudioTrack extends Closeable, AudioItem {
 
     AudioTrackInformation getInformation();
 
+    long getCurrentPosition();
+
 }
