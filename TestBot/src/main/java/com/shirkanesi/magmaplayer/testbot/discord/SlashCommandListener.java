@@ -51,21 +51,21 @@ public class SlashCommandListener extends ListenerAdapter {
             }
             case "queue" -> {
                 EmbedBuilder embedBuilder = new EmbedBuilder();
-                event.deferReply(true).queue();
+                event.deferReply(true).queue(interaction -> {
+                    int index = 1;
+                    for (AudioTrack audioTrack : audioPlayer.getTrackQueue()) {
+                        AudioTrackInformation information = audioTrack.getInformation();
+                        embedBuilder.addField(index + ". Track",
+                                information.getTitle() + " - " + information.getCreator(), false);
+                        index++;
+                    }
 
-                int index = 1;
-                for (AudioTrack audioTrack : audioPlayer.getTrackQueue()) {
-                    AudioTrackInformation information = audioTrack.getInformation();
-                    embedBuilder.addField(index + ". Track",
-                            information.getTitle() + " - " + information.getCreator(), false);
-                    index++;
-                }
-
-                if (audioPlayer.getTrackQueue().isEmpty()) {
-                    event.reply("Queue is empty").setEphemeral(true).queue();
-                } else {
-                    event.replyEmbeds(embedBuilder.build()).queue();
-                }
+                    if (audioPlayer.getTrackQueue().isEmpty()) {
+                        interaction.editOriginal("Queue is empty").queue();
+                    } else {
+                        interaction.editOriginalEmbeds(embedBuilder.build()).queue();
+                    }
+                });
             }
             case "track" -> {
                 EmbedBuilder embedBuilder = new EmbedBuilder();
