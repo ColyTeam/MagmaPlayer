@@ -42,7 +42,8 @@ public class SlashCommandListener extends ListenerAdapter {
                     event.reply("Track enqueued").setEphemeral(true).queue();
                 } else if (item instanceof YTDLPAudioPlaylist playlist) {
                     audioPlayer.enqueue(playlist);
-                    event.reply(playlist.getTracks().size() + " tracks enqueued").setEphemeral(true).queue();
+                    event.reply(playlist.getTracks().size() + " tracks enqueued " +
+                            "from playlist '" + playlist.getName() + "'").setEphemeral(true).queue();
                 }
             }
             case "skip" -> {
@@ -57,6 +58,8 @@ public class SlashCommandListener extends ListenerAdapter {
                         AudioTrackInformation information = audioTrack.getInformation();
                         embedBuilder.addField(index + ". Track",
                                 information.getTitle() + " - " + information.getCreator(), false);
+                        if (index == 10)
+                            break;
                         index++;
                     }
 
