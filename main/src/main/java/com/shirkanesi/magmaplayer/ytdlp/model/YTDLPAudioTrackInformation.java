@@ -2,7 +2,7 @@ package com.shirkanesi.magmaplayer.ytdlp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.shirkanesi.magmaplayer.AudioTrackInformation;
+import com.shirkanesi.magmaplayer.model.AudioTrackInformation;
 import lombok.Getter;
 
 // The json will always contain lots of values we don't care about ==> ignore them.

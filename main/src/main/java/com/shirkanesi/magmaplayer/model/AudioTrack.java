@@ -1,5 +1,6 @@
-package com.shirkanesi.magmaplayer;
+package com.shirkanesi.magmaplayer.model;
 
+import com.shirkanesi.magmaplayer.AudioPlayer;
 import com.shirkanesi.magmaplayer.listener.AudioTrackObserver;
 import com.shirkanesi.magmaplayer.listener.FiresEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackJumpEvent;

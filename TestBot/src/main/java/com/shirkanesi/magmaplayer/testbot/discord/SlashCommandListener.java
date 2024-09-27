@@ -1,8 +1,8 @@
 package com.shirkanesi.magmaplayer.testbot.discord;
 
 import com.shirkanesi.magmaplayer.AudioPlayer;
-import com.shirkanesi.magmaplayer.AudioTrack;
-import com.shirkanesi.magmaplayer.AudioTrackInformation;
+import com.shirkanesi.magmaplayer.model.AudioTrack;
+import com.shirkanesi.magmaplayer.model.AudioTrackInformation;
 import com.shirkanesi.magmaplayer.util.YTDLPManager;
 import com.shirkanesi.magmaplayer.ytdlp.YTDLPAudioItem;
 import com.shirkanesi.magmaplayer.ytdlp.YTDLPAudioPlaylist;

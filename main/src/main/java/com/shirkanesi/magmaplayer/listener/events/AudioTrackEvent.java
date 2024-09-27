@@ -1,7 +1,7 @@
 package com.shirkanesi.magmaplayer.listener.events;
 
 import com.shirkanesi.magmaplayer.AudioPlayer;
-import com.shirkanesi.magmaplayer.AudioTrack;
+import com.shirkanesi.magmaplayer.model.AudioTrack;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 

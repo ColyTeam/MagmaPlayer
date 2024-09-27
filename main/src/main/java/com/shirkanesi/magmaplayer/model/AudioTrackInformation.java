@@ -1,4 +1,4 @@
-package com.shirkanesi.magmaplayer;
+package com.shirkanesi.magmaplayer.model;
 
 public abstract class AudioTrackInformation {
 

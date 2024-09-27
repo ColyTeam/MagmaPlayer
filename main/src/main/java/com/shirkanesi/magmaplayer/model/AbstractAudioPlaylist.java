@@ -1,11 +1,11 @@
-package com.shirkanesi.magmaplayer;
+package com.shirkanesi.magmaplayer.model;
 
 import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractAudioPlaylist implements AudioPlaylist {
+public abstract class AbstractAudioPlaylist extends UserData implements AudioPlaylist {
 
     @Getter
     protected String name;

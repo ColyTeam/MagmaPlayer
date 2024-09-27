@@ -1,14 +1,15 @@
 package com.shirkanesi.magmaplayer.ytdlp;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.shirkanesi.magmaplayer.AbstractAudioTrack;
+import com.shirkanesi.magmaplayer.model.AbstractAudioTrack;
 import com.shirkanesi.magmaplayer.AudioPlayer;
-import com.shirkanesi.magmaplayer.AudioTrackInformation;
+import com.shirkanesi.magmaplayer.model.AudioTrackInformation;
 import com.shirkanesi.magmaplayer.exception.AudioPlayerException;
 import com.shirkanesi.magmaplayer.exception.AudioTrackPullException;
 import com.shirkanesi.magmaplayer.listener.FiresEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackJumpEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackStartedEvent;
+import com.shirkanesi.magmaplayer.model.UserData;
 import com.shirkanesi.magmaplayer.util.FormatUtils;
 import lombok.Setter;
 import com.shirkanesi.magmaplayer.ytdlp.model.YTDLPAudioTrackInformation;
@@ -72,6 +73,11 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
     public YTDLPAudioTrack(String url) throws MalformedURLException {
         URL urlObject = new URL(url);
         this.url = urlObject.toExternalForm();
+    }
+
+    public YTDLPAudioTrack(String url, Object userData) throws MalformedURLException {
+        this(url);
+        setUserData(userData);
     }
 
     @FiresEvent(value = AudioTrackStartedEvent.class, onEveryPass = true)

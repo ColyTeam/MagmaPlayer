@@ -1,6 +1,6 @@
 package com.shirkanesi.magmaplayer.ytdlp;
 
-import com.shirkanesi.magmaplayer.AbstractAudioPlaylist;
+import com.shirkanesi.magmaplayer.model.AbstractAudioPlaylist;
 import com.shirkanesi.magmaplayer.exception.AudioTrackPullException;
 import com.shirkanesi.magmaplayer.util.FormatUtils;
 
@@ -19,6 +19,11 @@ public class YTDLPAudioPlaylist extends AbstractAudioPlaylist implements YTDLPAu
 
     public YTDLPAudioPlaylist(String url) {
         this.url = url;
+    }
+
+    public YTDLPAudioPlaylist(String url, Object userData) {
+        this(url);
+        setUserData(userData);
     }
 
     @Override
