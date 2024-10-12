@@ -1,5 +1,6 @@
 package com.shirkanesi.magmaplayer.util;
 
+import com.shirkanesi.magmaplayer.model.UserData;
 import com.shirkanesi.magmaplayer.ytdlp.YTDLPAudioItem;
 import com.shirkanesi.magmaplayer.ytdlp.YTDLPAudioPlaylist;
 import com.shirkanesi.magmaplayer.ytdlp.YTDLPAudioTrack;
@@ -70,11 +71,23 @@ public final class YTDLPManager {
      * @return {@link YTDLPAudioPlaylist} if playlist and {@link YTDLPAudioTrack} otherwise
      */
     public static YTDLPAudioItem loadUrl(String url) throws MalformedURLException {
-        YTDLPAudioPlaylist playlist = new YTDLPAudioPlaylist(url);
+        return loadUrl(url, null);
+    }
+
+    /**
+     * Load an url that is compatible with yt-dlp.
+     * This will return a playlist if this is the case.
+     * Otherwise, it will return a track.
+     * @param url url of playlist or track
+     * @param userData arbitrary user data
+     * @return {@link YTDLPAudioPlaylist} if playlist and {@link YTDLPAudioTrack} otherwise
+     */
+    public static YTDLPAudioItem loadUrl(String url, Object userData) throws MalformedURLException {
+        YTDLPAudioPlaylist playlist = new YTDLPAudioPlaylist(url, userData);
         playlist.load();
 
         if (playlist.getTracks().isEmpty()) {
-            return new YTDLPAudioTrack(url);
+            return new YTDLPAudioTrack(url, userData);
         }
 
         return playlist;
