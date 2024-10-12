@@ -1,5 +1,6 @@
 package com.shirkanesi.magmaplayer.listener;
 
+import com.shirkanesi.magmaplayer.listener.events.AudioTrackRepeatEvent;
 import com.shirkanesi.magmaplayer.model.AudioTrack;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackEndEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackJumpEvent;
@@ -43,6 +44,11 @@ public class AudioTrackObserver {
     public void triggerAudioTrackJump(long from, long to) {
         AudioTrackJumpEvent event = new AudioTrackJumpEvent(audioTrack, from, to);
         this.listeners.forEach(listener -> listener.onAudioTrackJump(event));
+    }
+
+    public void triggerAudioTrackRepeat(boolean repeating) {
+        AudioTrackRepeatEvent event = new AudioTrackRepeatEvent(audioTrack, repeating);
+        this.listeners.forEach(listener -> listener.onAudioTrackRepeat(event));
     }
 
     public void addEventListener(AudioTrackEventListener listener) {

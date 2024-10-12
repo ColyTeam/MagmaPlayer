@@ -103,6 +103,14 @@ public class SlashCommandListener extends ListenerAdapter {
                     event.reply("Audio player paused").setEphemeral(true).queue();
                 }
             }
+            case "repeat" -> {
+                audioPlayer.toggleRepeating();
+                if (audioPlayer.isRepeating()) {
+                    event.reply("Audio player is now repeated").setEphemeral(true).queue();
+                } else {
+                    event.reply("Audio player is now *not* repeated").setEphemeral(true).queue();
+                }
+            }
         }
     }
 }

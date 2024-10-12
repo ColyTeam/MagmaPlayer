@@ -9,7 +9,6 @@ import com.shirkanesi.magmaplayer.exception.AudioTrackPullException;
 import com.shirkanesi.magmaplayer.listener.FiresEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackJumpEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackStartedEvent;
-import com.shirkanesi.magmaplayer.model.UserData;
 import com.shirkanesi.magmaplayer.util.FormatUtils;
 import lombok.Setter;
 import com.shirkanesi.magmaplayer.ytdlp.model.YTDLPAudioTrackInformation;
@@ -215,7 +214,7 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
         try {
             this.ready = false;
             if (this.opusFile != null) {
-                this.opusFile.close();
+                this.opusFile = null;
             }
 
             // This looks like busy-waiting. Well that's right. However, this will wait at most seconds.

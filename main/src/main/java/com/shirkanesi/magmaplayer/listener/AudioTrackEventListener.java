@@ -3,6 +3,7 @@ package com.shirkanesi.magmaplayer.listener;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackEndEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackJumpEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackPauseEvent;
+import com.shirkanesi.magmaplayer.listener.events.AudioTrackRepeatEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackSkippedEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackStartedEvent;
 
@@ -19,5 +20,7 @@ public interface AudioTrackEventListener {
     default void onAudioTrackPaused(final AudioTrackPauseEvent event) {}
 
     default void onAudioTrackJump(final AudioTrackJumpEvent event) {}
+
+    default void onAudioTrackRepeat(final AudioTrackRepeatEvent event) {}
 
 }

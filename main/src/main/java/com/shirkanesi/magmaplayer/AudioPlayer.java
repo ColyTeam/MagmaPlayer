@@ -5,10 +5,12 @@ import com.shirkanesi.magmaplayer.listener.AudioTrackEventListener;
 import com.shirkanesi.magmaplayer.listener.FiresEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackEndEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackPauseEvent;
+import com.shirkanesi.magmaplayer.listener.events.AudioTrackRepeatEvent;
 import com.shirkanesi.magmaplayer.listener.events.AudioTrackSkippedEvent;
 import com.shirkanesi.magmaplayer.model.AudioPlaylist;
 import com.shirkanesi.magmaplayer.model.AudioTrack;
 import com.shirkanesi.magmaplayer.model.Pauseable;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
@@ -28,6 +30,8 @@ public class AudioPlayer implements Pauseable, Closeable, AudioTrackEventListene
     private final BlockingQueue<AudioTrack> trackQueue = new LinkedBlockingQueue<>();
 
     private boolean paused = false;
+    @Getter
+    private boolean repeating = false;
 
     private AudioSendHandler sendHandler;
 
@@ -170,8 +174,20 @@ public class AudioPlayer implements Pauseable, Closeable, AudioTrackEventListene
         this.trackQueue.clear();
     }
 
+    @FiresEvent(value = AudioTrackRepeatEvent.class, onEveryPass = true)
+    public void toggleRepeating() {
+        this.repeating = !this.repeating;
+        if (this.audioTrack != null) {
+            this.audioTrack.getAudioTrackObserver().triggerAudioTrackRepeat(repeating);
+        }
+    }
+
     @Override
     public void onAudioTrackEnded(AudioTrackEndEvent event) {
-        next();
+        if (repeating) {
+            setTrack(this.audioTrack);
+        } else {
+            next();
+        }
     }
 }

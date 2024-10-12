@@ -78,7 +78,8 @@ public class MagmaPlayerTestBot {
                 Commands.slash("skip", "Skip the current track"),
                 Commands.slash("queue", "Output the current queue"),
                 Commands.slash("track", "Output information about current track"),
-                Commands.slash("pause", "Pause or resume the current track")
+                Commands.slash("pause", "Pause or resume the current track"),
+                Commands.slash("repeat", "Repeat the currently playing track")
         );
 
         commands.queue();
