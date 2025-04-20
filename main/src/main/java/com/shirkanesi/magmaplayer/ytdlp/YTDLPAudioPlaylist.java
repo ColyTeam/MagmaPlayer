@@ -16,6 +16,7 @@ public class YTDLPAudioPlaylist extends AbstractAudioPlaylist implements YTDLPAu
             "\"NAME:%%(playlist_title)s\"", "--print", "\"%%(url)s\"", "\"%s\""};
 
     private final String url;
+    private String cookiesFilePath;
 
     public YTDLPAudioPlaylist(String url) {
         this.url = url;
@@ -26,13 +27,19 @@ public class YTDLPAudioPlaylist extends AbstractAudioPlaylist implements YTDLPAu
         setUserData(userData);
     }
 
+    public YTDLPAudioPlaylist(String url, Object userData, String cookiesFilePath) {
+        this(url);
+        setUserData(userData);
+        this.cookiesFilePath = cookiesFilePath;
+    }
+
     @Override
     public void load() {
         try {
             List<String> urls = getPlaylistTracksAndSetName();
 
             for (String url : urls) {
-                tracks.add(new YTDLPAudioTrack(url));
+                tracks.add(new YTDLPAudioTrack(url, getUserData(), cookiesFilePath));
             }
         } catch (IOException e) {
             throw new AudioTrackPullException("Failed while loading playlist " + url, e);

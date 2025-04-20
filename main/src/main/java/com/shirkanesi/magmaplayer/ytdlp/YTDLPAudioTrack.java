@@ -39,9 +39,14 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
     private static final int SAMPLE_RATE = 48000;
     private static final String[] FIND_STREAM_COMMAND = {"yt-dlp", "-g", "-f", "bestaudio", "-S",
             "+size,+br,+res,+fps", "%s"};
-    private static final String[] FALLBACK_FIND_STREAM_COMMAND = {"yt-dlp", "-g", "-S", "+size,+br,+res,+fps",
-            "%s"};
+    private static final String[] FIND_STREAM_COOKIES_COMMAND = {"yt-dlp", "--cookies", "%s", "-g", "-f", "bestaudio",
+            "-S", "+size,+br,+res,+fps", "%s"};
+    private static final String[] FALLBACK_FIND_STREAM_COMMAND = {"yt-dlp", "-g", "-S",
+            "+size,+br,+res,+fps", "%s"};
+    private static final String[] FALLBACK_FIND_STREAM_COOKIES_COMMAND = {"yt-dlp", "--cookies", "%s", "-g", "-S",
+            "+size,+br,+res,+fps", "%s"};
     private static final String[] FIND_INFORMATION_COMMAND = {"yt-dlp", "-J", "%s"};
+    private static final String[] FIND_INFORMATION_COOKIES_COMMAND = {"yt-dlp", "--cookies", "%s", "-J", "%s"};
     private static final String[] PULL_STREAM_COMMAND = {"ffmpeg", "-loglevel", "quiet", "-hide_banner", "-i", "%s",
             "-y", "-vbr", "0", "-ab", "128k", "-ar", "48k", "-f", "opus", "-"};
     private static final int MAX_ATTEMPTS = 10;
@@ -53,10 +58,8 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
 
     private YTDLPAudioTrackInformation trackInformation;
 
-    /**
-     * The video's URL
-     */
     private final String url;
+    private String cookiesFilePath = null;
 
     private OpusFile opusFile;
     private OpusAudioData nextAudioPacket;
@@ -77,6 +80,12 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
     public YTDLPAudioTrack(String url, Object userData) throws MalformedURLException {
         this(url);
         setUserData(userData);
+    }
+
+    public YTDLPAudioTrack(String url, Object userData, String cookiesFilePath) throws MalformedURLException {
+        this(url, userData);
+        setUserData(userData);
+        this.cookiesFilePath = cookiesFilePath;
     }
 
     @FiresEvent(value = AudioTrackStartedEvent.class, onEveryPass = true)
@@ -144,15 +153,30 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
 
     private String findStreamUrl(String url) throws IOException, InterruptedException {
         String streamUrl = this.findStreamUrl(FIND_STREAM_COMMAND, url);
+        if (this.cookiesFilePath != null) {
+            streamUrl = findStreamUrl(FIND_STREAM_COOKIES_COMMAND, url, cookiesFilePath);
+        }
         if (streamUrl == null) {
             log.info("Initial stream-search not successfully. Trying with the fallback-command!");
             streamUrl = this.findStreamUrl(FALLBACK_FIND_STREAM_COMMAND, url);
+            if (this.cookiesFilePath != null) {
+                streamUrl = findStreamUrl(FALLBACK_FIND_STREAM_COOKIES_COMMAND, url, cookiesFilePath);
+            }
         }
         return streamUrl;
     }
 
     private String findStreamUrl(String[] commandTemplate, String url) throws IOException {
         final String[] findStreamUrlCommand = FormatUtils.format(commandTemplate, url);
+        return findStreamUrl(findStreamUrlCommand);
+    }
+
+    private String findStreamUrl(String[] commandTemplate, String url, String cookiesFilePath) throws IOException {
+        final String[] findStreamUrlCommand = FormatUtils.format(commandTemplate, cookiesFilePath, url);
+        return findStreamUrl(findStreamUrlCommand);
+    }
+
+    private String findStreamUrl(String[] findStreamUrlCommand) throws IOException {
         Process process = Runtime.getRuntime().exec(findStreamUrlCommand);
         try {
             process.waitFor(5, TimeUnit.SECONDS);
@@ -278,6 +302,9 @@ public class YTDLPAudioTrack extends AbstractAudioTrack implements YTDLPAudioIte
 
         try {
             final String[] findInformation = FormatUtils.format(FIND_INFORMATION_COMMAND, this.url);
+            if (this.cookiesFilePath != null) {
+                FormatUtils.format(FIND_INFORMATION_COOKIES_COMMAND, this.cookiesFilePath, this.url);
+            }
             Process process = Runtime.getRuntime().exec(findInformation);
             try {
                 // Timeout seems necessary for some reason. The process never terminates. This is cursed.

@@ -23,6 +23,7 @@
 
     <logger name="tech.ypsilon.bbbot" level="info"/>
     <logger name="org.mongodb.driver" level="info"/>
+    <logger name="net.dv8tion.jda.internal.audio" level="trace"/>
 
     <root level="info">
         <appender-ref ref="FILE"/>

@@ -93,4 +93,24 @@ public final class YTDLPManager {
         return playlist;
     }
 
+    /**
+     * Load an url that is compatible with yt-dlp.
+     * This will return a playlist if this is the case.
+     * Otherwise, it will return a track.
+     * @param url url of playlist or track
+     * @param userData arbitrary user data
+     * @param cookiesFilePath path to the Netscape Cookies files
+     * @return {@link YTDLPAudioPlaylist} if playlist and {@link YTDLPAudioTrack} otherwise
+     */
+    public static YTDLPAudioItem loadUrl(String url, Object userData, String cookiesFilePath) throws MalformedURLException {
+        YTDLPAudioPlaylist playlist = new YTDLPAudioPlaylist(url, userData, cookiesFilePath);
+        playlist.load();
+
+        if (playlist.getTracks().isEmpty()) {
+            return new YTDLPAudioTrack(url, userData, cookiesFilePath);
+        }
+
+        return playlist;
+    }
+
 }
